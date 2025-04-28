@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Central de Cursos - Jogo Ético Corporativo</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+
+  <style>
+    .container {
+      max-width: 1200px;
+      margin: 120px auto;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 50px;
+    }
+    .course-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+      gap: 20px;
+      width: 100%;
+    }
+    .course-card {
+      background: rgba(0, 0, 0, 0.85);
+      border: 2px solid #00ff00;
+      border-radius: 11px;
+      padding: 40px 20px;
+      text-align: center;
+      box-shadow: 0 0 30px 3px rgba(0, 255, 0, 0.356);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.4s ease-in-out;
+    }
+    .course-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(0,255,0,0.2), transparent 60%);
+      transform: translateX(-100%) rotate(45deg);
+      animation: shine 6s infinite linear;
+      pointer-events: none;
+    }
+    @keyframes shine {
+      0% { transform: translateX(-100%) rotate(45deg); }
+      50% { transform: translateX(100%) rotate(45deg); }
+      100% { transform: translateX(100%) rotate(45deg); }
+    }
+    .course-icon {
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+    }
+    .course-title {
+      font-size: 1.75rem;
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #00ff00;
+      text-shadow: 0 0 8px #00ff00, 0 0 20px #00ff00;
+    }
+    .course-desc {
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+      color: #00ff00;
+      line-height: 1.4;
+    }
+    .btn {
+      background: transparent;
+      border: 2px solid #00ff00;
+      color: #00ff00;
+      padding: 12px 25px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1em;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 5px #00ff00;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn:hover {
+      background: #00ff00;
+      color: #000;
+      transform: scale(1.05);
+      box-shadow: 0 0 15px #00ff00;
+    }
+    .hero {   
+      text-align: center;
+      color: #00ff00;
+      text-shadow: 0 0 8px #00ff00, 0 0 20px #00ff00;
+    }
+    .hero h1 {
+      font-size: 2.5em;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+    }
+    .hero p {
+      font-size: 1.2em;
+      line-height: 1.4;
+    }
+    .stats-section {
+      width: 100%;
+      text-align: center;
+    }
+    .stats-title {
+      font-size: 2em;
+      color: #00ff00;
+      text-shadow: 0 0 8px #00ff00;
+      margin-bottom: 20px;
+    }
+    .stats-toggle {
+      margin-bottom: 15px;
+    }
+    .stats-chart {
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #00ff00;
+      font-size: 0.9em;
+      text-shadow: 0 0 5px #00ff00;
+    }
+
+.material-symbols-outlined {
+  font-variation-settings: 
+    'FILL' 0, 
+    'wght' 400, 
+    'GRAD' 0, 
+    'opsz' 24;
+    font-size: 70px;
+
+  }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="hero">
+      <h1>Central de Cursos</h1>
+      <p>Desenvolva suas habilidades éticas corporativas com nossos módulos interativos</p>
+    </section>
+    <section class="course-grid">
+      <div class="course-card">
+        <span class="material-symbols-outlined">
+            volunteer_activism
+          </span> 
+        <h3 class="course-title">Empatia</h3>
+        <p class="course-desc">Aprenda a se colocar no lugar do outro e fortalecer conexões no ambiente de Trabalho.
+        </p>
+        <a href="éticabeta.html" class="btn">Acessar Curso</a>
+      </div>
+      <div class="course-card">
+        <span class="material-symbols-outlined">
+            diversity_3
+          </span> 
+      <h3 class="course-title">Trabalho em Equipe</h3>
+        <p class="course-desc">Descubra técnicas para colaboração eficiente e alcance metas em conjunto.</p>
+        <a href="#" class="btn">Acessar Curso</a>
+      </div>
+      <div class="course-card">
+        <span class="material-symbols-outlined">
+            neurology
+         </span>     
+        <h3 class="course-title">Inteligência Emocional</h3>
+        <p class="course-desc">Domine suas emoções e melhore a tomada de decisões em situações desafiadoras.</p>
+        <a href="#" class="btn">Acessar Curso</a>
+      </div>
+      <div class="course-card">
+        <span class="material-symbols-outlined">
+            record_voice_over
+        </span> 
+        <h3 class="course-title">Comunicação</h3>
+        <p class="course-desc">Aprimore suas habilidades de comunicação para transmitir mensagens claras e eficazes.</p>
+        <a href="#" class="btn">Acessar Curso</a>
+      </div>
+    </section>
+    <section class="stats-section">
+      <h2 class="stats-title"> Sua Pontuação</h2>
+      <div class="stats-chart">
+        <canvas id="scoreChart"></canvas>
+      </div>
+    </section>
+    <footer>
+      &copy; Emerald Vault 2025 - Financiada por Boris Borges Bolesvav
+    </footer>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+     const scores = {
+    empatia: parseInt(localStorage.getItem("score_empatia") || 0),
+    equipe: parseInt(localStorage.getItem("score_equipe") || 0),
+    emocional: parseInt(localStorage.getItem("score_emocional") || 0),
+    comunicacao: parseInt(localStorage.getItem("score_comunicacao") || 0),
+  };
+
+  const ctx = document.getElementById('scoreChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Empatia', 'Trabalho em Equipe', 'Inteligência Emocional', 'Comunicação'],
+      datasets: [{
+        label: 'Pontuação Recorde',
+        data: [
+          scores.empatia,
+          scores.equipe,
+          scores.emocional,
+          scores.comunicacao
+        ],
+        backgroundColor: 'rgba(0, 255, 0, 0.4)',
+        borderColor: '#00ff00',
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { color: '#00ff00' },
+          grid: { color: 'rgba(0,255,0,0.2)' }
+        },
+        x: {
+          ticks: { color: '#00ff00' },
+          grid: { color: 'rgba(0,255,0,0.1)' }
+        }
+      },
+      plugins: {
+        legend: { labels: { color: '#00ff00' } }
+      }
+    }
+  });
+  </script>
+</body>
+</html>

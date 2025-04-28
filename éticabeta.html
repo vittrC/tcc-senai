@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teste de Ética no Trabalho</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- Ícone de Perfil -->
+<div id="profileContainer" onclick="backToMenu()">
+  <img id="profileImage" src="img/img1.png" alt="Foto de Perfil" draggable="false">
+</div>
+
+<!-- Menu Principal -->
+<div class="container" id="menu">
+  <h1>Teste de Ética no Ambiente de Trabalho</h1>
+  <p>Bem-vindo ao simulador de dilemas éticos, aqui será testada toda sua integridade como ser. Boa sorte!</p>
+  <button class="btn" onclick="startGame()">Iniciar o Jogo</button>
+  <button class="btn" onclick="showInstructions()">Instruções</button>
+  <button class="btn" onclick="showProfileSelection()">Alterar Avatar</button>
+  
+  <div class="simple-score">
+    <p>🏆 Recorde: <span id="highScoreValue">0</span></p>
+    <p>Última pontuação: <span id="lastScoreValue">0</span></p>
+    <button id="resetScoreBtn" class="reset-btn" onclick="showResetConfirmation()">Resetar Pontuação</button>
+    <div id="resetConfirm" class="reset-confirm hidden">
+      Tem certeza que deseja resetar o recorde?
+      <div class="reset-options">
+        <button class="btn" onclick="resetHighScore()">Sim</button>
+        <button class="reset-btn" onclick="hideResetConfirmation()">Não</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Seleção de Perfil -->
+<div class="container hidden" id="profileSelection">
+  <h2>Escolha seu Avatar</h2>
+  <div class="profile-grid">
+    <img src="img/img1.png" class="profile-option" onclick="selectProfile('1')" draggable="false">
+    <img src="img/img2.png" class="profile-option" onclick="selectProfile('2')" draggable="false">
+    <img src="img/img3.png" class="profile-option" onclick="selectProfile('3')" draggable="false">
+    <img src="img/img4.png" class="profile-option" onclick="selectProfile('4')" draggable="false">
+    <img src="img/img5.png" class="profile-option" onclick="selectProfile('5')" draggable="false">
+    <img src="img/img6.png" class="profile-option" onclick="selectProfile('6')" draggable="false">
+  </div>
+  <button class="btn" onclick="hideProfileSelection()">Voltar</button>
+</div>
+
+<!-- Instruções -->
+<div class="container hidden" id="instructions">
+  <h2>Instruções</h2>
+  <p>
+    Enfrente dilemas que podem ocorrer num ambiente de trabalho.<br>
+    Cada decisão pode aumentar sua moral ou acabar te dando a fama de um exemplo do que NÃO fazer.
+  </p>
+  <button class="btn" onclick="backToMenu()">Voltar ao Menu</button>
+</div>
+
+<!-- Jogo -->
+<div class="container hidden" id="game">
+  <h2><span class="icon-number" id="questionNumber">1</span><span id="questionTitle">Questão</span></h2>
+  <img id="questionGif" src="" alt="GIF da Questão" draggable="false">
+  <p id="questionText">Texto da pergunta...</p>
+  <div id="answers"></div>
+</div>
+
+<!-- Resultado -->
+<div class="container hidden" id="result">
+  <h2>🏁 Resultado Final</h2>
+  
+  <div style="display: flex; align-items: center; justify-content: center; gap: 30px; margin: 20px 0;">
+    <div style="text-align: center;">
+      <img id="resultAvatar" src="img/img1.png" style="width: 120px; height: 120px; border-radius: 50%; border: 3px solid #00ff00; box-shadow: 0 0 20px #00ff00;">
+    </div>
+    
+    <div style="text-align: center;">
+      <div style="font-size: 2.5em; color: #ffff00; text-shadow: 0 0 10px #ffff00; margin-bottom: 10px;">
+        <span id="finalScoreValue">0</span>/<span id="totalPossibleScore">3000</span>
+      </div>
+      <div style="background: rgba(0, 255, 0, 0.2); padding: 10px; border-radius: 10px;">
+        <p style="font-size: 1.1em;">Pontuação Máxima: <span id="highScoreDisplay">0</span></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="scoreMeter" style="height: 20px; background: rgba(0, 255, 0, 0.2); border-radius: 10px; margin: 20px 0; overflow: hidden;">
+    <div id="scoreProgress" style="height: 100%; background: linear-gradient(90deg, #00ff00, #00ff88); width: 0%; transition: width 1s ease;"></div>
+  </div>
+
+  <p id="finalMessage" style="font-size: 1.3em; margin: 20px 0; min-height: 60px;"></p>
+  
+  <div style="margin-top: 30px;">
+    <button class="btn" onclick="backToMenu()">Voltar ao Menu</button>
+  </div>
+</div>
+
+<script>
+
+function showResetConfirmation() {
+  document.getElementById("resetConfirm").classList.remove("hidden");
+  document.getElementById("resetScoreBtn").classList.add("hidden");
+}
+
+function hideResetConfirmation() {
+  document.getElementById("resetConfirm").classList.add("hidden");
+  document.getElementById("resetScoreBtn").classList.remove("hidden");
+}
+
+function resetHighScore() {
+  highScore = 0;
+  localStorage.setItem('highScore', highScore);
+  updateScoreDisplay();
+  hideResetConfirmation();
+  
+  // Feedback visual
+  const feedback = document.createElement('div');
+  feedback.textContent = 'Recorde resetado!';
+  feedback.style.position = 'fixed';
+  feedback.style.top = '50%';
+  feedback.style.left = '50%';
+  feedback.style.transform = 'translate(-50%, -50%)';
+  feedback.style.color = '#ff0000';
+  feedback.style.fontSize = '1.5em';
+  feedback.style.textShadow = '0 0 8px #ff0000';
+  feedback.style.zIndex = '1000';
+  feedback.style.animation = 'fadeOut 1.5s forwards';
+  feedback.style.pointerEvents = 'none'; 
+
+  
+  document.body.appendChild(feedback);
+  
+  setTimeout(() => {
+    feedback.remove();
+  }, 1500);
+}
+
+
+// Constantes
+const POINTS_PER_CORRECT = 150;
+const PROFILE_IMAGES = {
+  '1': 'img/img1.png',
+  '2': 'img/img2.png',
+  '3': 'img/img3.png',
+  '4': 'img/img4.png',
+  '5': 'img/img5.png',
+  '6': 'img/img6.png'
+};
+
+// Variáveis do jogo
+let currentQuestion = 0;
+let score = 0;
+let currentProfile = '1';
+let highScore = localStorage.getItem('highScore') || 0;
+let lastScore = localStorage.getItem('lastScore') || 0;
+
+// Perguntas do jogo 
+const questions = [
+  {
+    title: "Acidente da Gelatina",
+    text: "Em um dia comum, um colega denuncia outro por ter colocado seu grampeador em uma gelatina. Qual sua atitude?",
+    gif: "gifs/gelatina.gif",
+    answers: [
+      { text: "A) Reúne os envolvidos para resolver discretamente.", ethical: true },
+      { text: "B) Ri freneticamente enquanto aponta para o colega.", ethical: false },
+      { text: "C) Espalha a história pelo escritório, dando a ele o apelido de 'guloso'.", ethical: false }
+      ,{ text: "D) Recorre ao RH.", ethical: true }
+    ]
+  },
+  {
+    title: "Assédio no Trabalho",
+    text: "Durante uma ida à cozinha, você vê seu colega constrangendo uma de suas colegas. O que você faz?",
+    gif: "gifs/tarado.gif",
+    answers: [
+      { text: "A) Denuncia o comportamento para seus superiores.", ethical: true },
+      { text: "B) Não faz nada e finge que nada aconteceu.", ethical: false },
+      { text: "C) Conversa com o colega e diz que aquilo não é legal.", ethical: true }
+    ]
+  },
+  {
+    title: "Identidade Falsa",
+    text: "Você descobre que seu velho colega usa um nome falso. O que você faz?",
+    gif: "gifs/anonimo.gif",
+    answers: [
+      { text: "A) Reporta às autoridades.", ethical: true },
+      { text: "B) Alerta seus colegas sobre a falsa identidade.", ethical: false },
+      { text: "C) Confronta-o pessoalmente, adotando postura agressiva.", ethical: false }
+    ]
+  },
+  {
+    title: "O Sumiço do Iogurte ",
+    text: "Você vê um colega pegando seu iogurte da geladeira do escritório e comendo sem pedir. O que você faz?",
+    gif: "gifs/iogurte.gif",
+    answers: [
+      { text: "A) Coloca pimenta em todos os seus lanches futuros.", ethical: false },
+      { text: "B) Conversa com ele educadamente sobre respeito ao espaço alheio.", ethical: true },
+      { text: "C) Grava um vídeo e posta no grupo da empresa com a 'legenda O Ladrão de Iogurte'.", ethical: false },
+    ]
+  },
+  {
+    title: "Erro no Sistema",
+    text: "Você descobre um bug no sistema que permite descontos ilimitados em compras internas. Como age?",
+    gif: "gifs/bug.gif",
+    answers: [
+      { text: "A) Compra um estoque de cafés grátis para os próximos 5 anos.", ethical: false },
+      { text: "B) Reporta imediatamente ao TI.", ethical: true },
+      { text: "C) Coloca um letreiro: 'Cuidado, o algoritmo pode te fazer rir ou chorar'.", ethical: false }
+    ]
+  },
+  
+  {
+    title: "Dilema da Impressora",
+    text: "Você percebe que a impressora está imprimindo documentos confidenciais por engano. Qual sua ação?",
+    gif: "gifs/impressora.gif",
+    answers: [
+      { text: "A) Notifica o setor de TI imediatamente.", ethical: true },
+      { text: "B) Imprime cópias extras para analisar o que está acontecendo.", ethical: false },
+      { text: "C) Compartilha com os colegas para criar um boato.", ethical: false }
+    ]
+  },
+  {
+    title: "Conflito de Agenda",
+    text: "Dois colegas agendaram a mesma reunião importante e há conflitos de horário. O que você faz?",
+    gif: "gifs/agenda.gif",
+    answers: [
+      { text: "A) Sugere uma reprogramação para evitar o conflito.", ethical: true },
+      { text: "B) Ignora e deixa que resolvam sozinhos, causando confusão.", ethical: false },
+      { text: "C) Aproveita a situação para se exaltar na reunião.", ethical: false }
+    ]
+  },
+  {
+    title: "Uso Indevido de Recursos",
+    text: "Você descobre que um colega usa os recursos da empresa para projetos pessoais. Como age?",
+    gif: "gifs/recursos.gif",
+    answers: [
+      { text: "A) Reporta o caso ao supervisor.", ethical: true },
+      { text: "B) Fica de olho, mas não interfere.", ethical: false },
+      { text: "C) Participa do projeto para ganhar benefícios.", ethical: false }
+    ]
+  },
+  {
+    title: "E-mail Inapropriado",
+    text: "Um e-mail com conteúdo inapropriado é enviado para toda a equipe. Qual sua postura?",
+    gif: "gifs/email.gif",
+    answers: [
+      { text: "A) Reporta o incidente ao departamento de comunicação.", ethical: true },
+      { text: "B) Responde com piadas para minimizar o clima.", ethical: false },
+      { text: "C) Ignora e continua trabalhando normalmente.", ethical: false }
+    ]
+  },
+  {
+    title: "Favoritismo",
+    text: "Você percebe que o gerente trata certos colegas de forma privilegiada sem motivo. O que faz?",
+    gif: "gifs/favoritismo.gif",
+    answers: [
+      { text: "A) Leva o assunto à gerência de RH.", ethical: true },
+      { text: "B) Participa das conversas e se beneficia do favoritismo.", ethical: false },
+      { text: "C) Fica em silêncio para não se envolver.", ethical: false }
+    ]
+  },
+  {
+    title: "Vazamento de Informações",
+    text: "Informações confidenciais da empresa estão sendo vazadas. Qual sua atitude?",
+    gif: "gifs/vazamento.gif",
+    answers: [
+      { text: "A) Investiga e reporta ao departamento de segurança.", ethical: true },
+      { text: "B) Compartilha com colegas para tentar descobrir o culpado.", ethical: false },
+      { text: "C) Ignora, pois não é problema seu.", ethical: false }
+    ]
+  },
+  {
+    title: "Plágio Interno",
+    text: "Você descobre que um relatório foi copiado sem crédito de outra fonte. O que você faz?",
+    gif: "gifs/plagio.gif",
+    answers: [
+      { text: "A) Aponta o problema para o supervisor.", ethical: true },
+      { text: "B) Faz piada com o ocorrido.", ethical: false },
+      { text: "C) Copia o mesmo relatório para não ficar de fora.", ethical: false }
+    ]
+  },
+  {
+    title: "Conflito de Interesses",
+    text: "Você é convidado para participar de um projeto em que há claro conflito de interesses. Qual sua decisão?",
+    gif: "gifs/conflito.gif",
+    answers: [
+      { text: "A) Recusa educadamente e informa seu superior.", ethical: true },
+      { text: "B) Participa mesmo sabendo dos conflitos.", ethical: false },
+      { text: "C) Aceita, mas tenta manipular os resultados a seu favor.", ethical: false }
+    ]
+  },
+  {
+    title: "Uso de Redes Sociais",
+    text: "Um colega publica críticas sobre a empresa nas redes sociais. Como você reage?",
+    gif: "gifs/redessociais.gif",
+    answers: [
+      { text: "A) Sugere cautela e orientação sobre o uso das redes.", ethical: true },
+      { text: "B) Compartilha o post para aumentar o alcance.", ethical: false },
+      { text: "C) Ignora e continua sem comentar.", ethical: false }
+    ]
+  },
+  {
+    title: "Conflito com Cliente",
+    text: "Um cliente se mostra extremamente rude, e um colega perde a paciência. O que você faz?",
+    gif: "gifs/cliente.gif",
+    answers: [
+      { text: "A) Tenta mediar a situação com calma.", ethical: true },
+      { text: "B) Encoraja o colega a revidar.", ethical: false },
+      { text: "C) Fica de fora e deixa o conflito se agravar.", ethical: false }
+    ]
+  },
+  {
+    title: "Uso de Tecnologia",
+    text: "Você percebe que um colega usa tecnologia para espionar conversas internas. Qual atitude adota?",
+    gif: "gifs/tecnologia.gif",
+    answers: [
+      { text: "A) Reporta imediatamente à TI.", ethical: true },
+      { text: "B) Ignora, achando que é apenas curiosidade.", ethical: false },
+      { text: "C) Participa e utiliza a ferramenta para benefício próprio.", ethical: false }
+    ]
+  },
+  {
+    title: "Desrespeito ao Horário",
+    text: "Um colega constantemente chega atrasado, prejudicando a equipe. Como você reage?",
+    gif: "gifs/atraso.gif",
+    answers: [
+      { text: "A) Conversa com ele e, se necessário, alerta o supervisor.", ethical: true },
+      { text: "B) Reclama com os demais colegas.", ethical: false },
+      { text: "C) Ignora, para evitar conflitos.", ethical: false }
+    ]
+  },
+  {
+    title: "Recusa de Feedback",
+    text: "Você nota que um colega se recusa a aceitar feedback construtivo. O que você faz?",
+    gif: "gifs/feedback.gif",
+    answers: [
+      { text: "A) Tenta explicar a importância do feedback.", ethical: true },
+      { text: "B) Ignora a situação e foca em seu trabalho.", ethical: false },
+      { text: "C) Exagera nas críticas para chamar atenção.", ethical: false }
+    ]
+  },
+  {
+    title: "Apropriação Indevida",
+    text: "Você descobre que um colega se apropria de ideias dos demais sem dar crédito. Como age?",
+    gif: "gifs/apropriacao.gif",
+    answers: [
+      { text: "A) Aborda o colega e, se necessário, reporta ao superior.", ethical: true },
+      { text: "B) Aproveita para se destacar também.", ethical: false },
+      { text: "C) Fica em silêncio e não comenta.", ethical: false }
+    ]
+  },
+  {
+    title: "Dilema da Parceria",
+    text: "Um colega propõe uma parceria duvidosa para benefício mútuo. Qual sua decisão?",
+    gif: "gifs/parceria.gif",
+    answers: [
+      { text: "A) Recusa e explica os riscos éticos.", ethical: true },
+      { text: "B) Aceita, visando ganhos pessoais.", ethical: false },
+      { text: "C) Aceita, mas apenas para observar o desenrolar da situação.", ethical: false }
+    ]
+  }
+];
+
+
+
+// Funções do sistema de perfil
+function loadProfile() {
+  const savedProfile = localStorage.getItem('profile');
+  if (savedProfile) currentProfile = savedProfile;
+  document.getElementById('profileImage').src = PROFILE_IMAGES[currentProfile];
+  updateScoreDisplay();
+}
+
+function showProfileSelection() {
+  document.getElementById("menu").classList.add("hidden");
+  document.getElementById("profileSelection").classList.remove("hidden");
+}
+
+function hideProfileSelection() {
+  document.getElementById("profileSelection").classList.add("hidden");
+  document.getElementById("menu").classList.remove("hidden");
+}
+
+function selectProfile(profileId) {
+  currentProfile = profileId;
+  localStorage.setItem('profile', profileId);
+  document.getElementById('profileImage').src = PROFILE_IMAGES[profileId];
+  hideProfileSelection();
+}
+
+// Funções do jogo principal
+function startGame() {
+  document.getElementById("menu").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+  currentQuestion = 0;
+  score = 0;
+  showQuestion();
+}
+
+function showQuestion() {
+  const question = questions[currentQuestion];
+  document.getElementById("questionNumber").textContent = currentQuestion + 1;
+  document.getElementById("questionTitle").textContent = question.title;
+  document.getElementById("questionText").textContent = question.text;
+  document.getElementById("questionGif").src = question.gif;
+  
+  const answersDiv = document.getElementById("answers");
+  answersDiv.innerHTML = "";
+  question.answers.forEach(answer => {
+    const btn = document.createElement("button");
+    btn.className = "btn";
+    btn.textContent = answer.text;
+    btn.onclick = () => selectAnswer(answer.ethical);
+    answersDiv.appendChild(btn);
+  });
+}
+
+function selectAnswer(isEthical) {
+  if (isEthical) score += POINTS_PER_CORRECT;
+  currentQuestion++;
+  if (currentQuestion < questions.length) {
+    showQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult() {
+  // Atualiza placar
+  lastScore = score;
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem('highScore', highScore);
+  }
+  localStorage.setItem('lastScore', lastScore);
+  
+  // Mostra resultados
+  document.getElementById("game").classList.add("hidden");
+  document.getElementById("result").classList.remove("hidden");
+  
+  // Atualiza avatar
+  document.getElementById("resultAvatar").src = PROFILE_IMAGES[currentProfile];
+  
+  const totalPoints = questions.length * POINTS_PER_CORRECT;
+  
+  // Anima a pontuação
+  animateValue("finalScoreValue", 0, score, 1000);
+  document.getElementById("totalPossibleScore").textContent = totalPoints;
+  document.getElementById("highScoreDisplay").textContent = highScore;
+  
+  // Anima a barra de progresso
+  const percentage = (score / totalPoints) * 100;
+  setTimeout(() => {
+    document.getElementById("scoreProgress").style.width = `${percentage}%`;
+  }, 300);
+  
+  // Mensagem de desempenho
+  let message = "";
+  if (percentage >= 90) message = "✨ Ética Impecável! Você é um exemplo no ambiente de trabalho.";
+  else if (percentage >= 70) message = "🔎 Excelente! Suas decisões são quase sempre corretas.";
+  else if (percentage >= 50) message = "⚡ Bom trabalho! Algumas escolhas poderiam ser melhores.";
+  else if (percentage >= 30) message = "⚠️ Atenção! Revise seus conceitos sobre ética profissional.";
+  else message = "🚨 Alerta! Suas decisões precisam de uma revisão urgente.";
+  
+  document.getElementById("finalMessage").textContent = message;
+  
+  // Atualiza display no menu também
+  updateScoreDisplay();
+}
+
+// Função para animar números
+function animateValue(id, start, end, duration) {
+  const obj = document.getElementById(id);
+  let startTimestamp = null;
+  const step = (timestamp) => {
+    if (!startTimestamp) startTimestamp = timestamp;
+    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+    obj.textContent = Math.floor(progress * (end - start) + start);
+    if (progress < 1) {
+      window.requestAnimationFrame(step);
+    }
+  };
+  window.requestAnimationFrame(step);
+}
+
+// Funções de navegação
+function showInstructions() {
+  document.getElementById("menu").classList.add("hidden");
+  document.getElementById("instructions").classList.remove("hidden");
+}
+
+function backToMenu() {
+  document.getElementById("instructions").classList.add("hidden");
+  document.getElementById("result").classList.add("hidden");
+  document.getElementById("game").classList.add("hidden");
+  document.getElementById("profileSelection").classList.add("hidden");
+  document.getElementById("menu").classList.remove("hidden");
+  updateScoreDisplay();
+}
+
+// Função para atualizar o placar
+function updateScoreDisplay() {
+  document.getElementById('highScoreValue').textContent = highScore;
+  document.getElementById('lastScoreValue').textContent = lastScore;
+}
+
+window.onload = function() {
+  loadProfile();
+  updateMultiplierDisplay();
+};
+
+localStorage.setItem("score_empatia", highScore);
+
+</script>
+</body>
+</html>
