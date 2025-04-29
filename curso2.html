@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Curso 2 - Trabalho em Equipe </title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <style>
+ :root {
+      --primary: #00ff00;
+      --primary-dark: #00cc00;
+      --accent: #ffeb3b;
+      --accent-dark: #ffc107;
+      --bg: #000000;
+      --bg-light: #000000;
+      --text: #00ff00;
+      --text-light: #99ff99;
+      --transition: 0.3s;
+      --glow: 0 0 10px var(--primary);
+      --glow-accent: 0 0 15px var(--accent);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Courier New', monospace;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(0, 255, 0, 0.05) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(255, 235, 59, 0.05) 0%, transparent 20%);
+    }
+
+    .screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 25px;
+      width: 100%;
+      max-width: 600px;
+      padding: 30px;
+      background: var(--bg-light);
+      border-radius: 15px;
+      box-shadow: var(--glow);
+      border: 1px solid var(--primary);
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .active {
+      display: flex;
+    }
+
+    h2 {
+      color: var(--accent);
+      text-shadow: var(--glow-accent);
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .btn {
+      background: rgba(0, 0, 0, 0.3);
+      border: 2px solid var(--primary);
+      color: var(--text);
+      padding: 12px 25px;
+      margin: 5px;
+      cursor: pointer;
+      font-size: 1em;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all var(--transition) ease;
+      box-shadow: var(--glow);
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.2), transparent);
+      transition: all 0.6s ease;
+    }
+
+    .btn:hover {
+      background: rgba(0, 255, 0, 0.1);
+      color: var(--text-light);
+      transform: translateY(-2px);
+      box-shadow: 0 0 20px var(--primary);
+    }
+
+    .btn:hover::before {
+      left: 100%;
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    input[type="text"] {
+      padding: 12px 15px;
+      border: 2px solid var(--primary);
+      background: rgba(0, 0, 0, 0.5);
+      color: var(--text);
+      border-radius: 8px;
+      font-size: 1em;
+      width: 200px;
+      text-align: center;
+      transition: all var(--transition);
+      box-shadow: inset var(--glow);
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: inset 0 0 15px var(--accent);
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    #fileStatus {
+      font-size: 0.9em;
+      color: var(--accent);
+      text-shadow: var(--glow-accent);
+      margin-top: 5px;
+    }
+
+    .avatars {
+      display: flex;
+      gap: 25px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .avatar {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .avatar img {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      border: 3px solid var(--primary);
+      object-fit: cover;
+      transition: all var(--transition);
+      box-shadow: var(--glow);
+    }
+
+    .avatar.leader img {
+      border-color: var(--accent);
+      box-shadow: var(--glow-accent);
+      animation: pulse 2s infinite;
+    }
+
+    .avatar p {
+      color: var(--text-light);
+      font-size: 0.9em;
+    }
+
+    .code-box {
+      padding: 15px 30px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 2px solid var(--primary);
+      border-radius: 8px;
+      font-size: 1.5em;
+      font-weight: bold;
+      text-align: center;
+      color: var(--accent);
+      letter-spacing: 3px;
+      margin: 15px 0;
+      box-shadow: var(--glow);
+    }
+
+    .game-image {
+      max-width: 90vw;
+      max-height: 60vh;
+      border: 4px solid var(--primary);
+      border-radius: 15px;
+      box-shadow: 0 0 30px var(--primary);
+      margin-top: 20px;
+    }
+
+    .logo {
+      max-width: 370px;
+      animation: pulse 3s infinite ease-in-out;
+      margin-bottom: 10px;
+    }
+
+    #roleDisplay {
+      font-size: 1.5em;
+      color: var(--accent);
+      text-shadow: var(--glow-accent);
+      padding: 15px 30px;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 2px solid var(--accent);
+      margin-bottom: 20px;
+    }
+
+    .manual-container {
+      position: relative;
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    
+    .manual-page {
+      display: none;
+      width: 100%;
+      border-radius: 10px;
+      border: 3px solid var(--primary);
+      box-shadow: var(--glow);
+    }
+    
+    .manual-page.active {
+      display: block;
+    }
+    
+    .manual-controls {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+    }
+    
+    .wire-puzzle {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    
+    .wire {
+      height: 40px;
+      background: linear-gradient(to right, var(--wire-color), var(--wire-color));
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .wire::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.1);
+      transform: translateX(-100%);
+      transition: transform 0.3s;
+    }
+    
+    .wire:hover::after {
+      transform: translateX(100%);
+    }
+    
+    .wire.cut {
+      opacity: 0.3;
+      background: linear-gradient(to right, 
+        var(--wire-color) 0%, 
+        var(--wire-color) 45%, 
+        transparent 45%, 
+        transparent 55%, 
+        var(--wire-color) 55%, 
+        var(--wire-color) 100%);
+    }
+    
+    .timer-display {
+      font-size: 2em;
+      color: var(--accent);
+      text-shadow: var(--glow-accent);
+      margin: 15px 0;
+    }
+    
+    .success-message, .fail-message {
+      display: none;
+      font-size: 1.5em;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+      text-align: center;
+    }
+    
+    .success-message {
+      background: rgba(0, 100, 0, 0.5);
+      border: 2px solid var(--primary);
+    }
+    
+    .fail-message {
+      background: rgba(100, 0, 0, 0.5);
+      border: 2px solid #ff0000;
+    }
+    
+    .wire-colors {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    
+    .wire-color-sample {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 2px solid white;
+    }
+
+    /* keyframes para animação */ 
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 0.6; }
+      50% { transform: scale(1.09); opacity: 10; }
+      100% { transform: scale(1); opacity: 0.6; }
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+      
+      .screen {
+        padding: 20px;
+      }
+      
+      .logo {
+        max-width: 280px;
+      }
+      
+      .avatar img {
+        width: 70px;
+        height: 70px;
+      }
+      
+      .code-box {
+        font-size: 1.2em;
+        padding: 10px 20px;
+      }
+    }
+</style>
+</head>
+<body>
+  <div id="menuScreen" class="screen active">
+    <img src="img/cursologo.png" alt="Logo" class="logo"> 
+    <label for="avatarInput" class="btn">Selecionar Avatar</label>
+    <input type="file" id="avatarInput" accept="image/*">
+    <div id="fileStatus"></div>
+    <button id="createBtn" class="btn">Criar Sala</button>
+    <div>
+      <input type="text" id="roomCodeInput" placeholder="Código da Sala">
+      <button id="joinBtn" class="btn">Entrar na Sala</button>
+    </div>
+  </div>
+
+  <div id="lobbyScreen" class="screen">
+    <h2>Código da Sala</h2>
+    <div class="code-box"><span id="roomCodeDisplay"></span></div>
+    <div class="avatars" id="avatarContainer"></div>
+    <button id="startBtn" class="btn" style="display:none;">Iniciar Jogo</button>
+  </div>
+
+  <div id="gameScreen" class="screen">
+    <div id="roleDisplay"></div>
+    <div id="gameDiv"></div>
+  </div>
+
+  <script>
+    /* configurações do firebase */
+    const firebaseConfig = {
+      apiKey: "AIzaSyDb7oF0rB1QogdDazQtMxKDzLi5DCepeVE",
+      authDomain: "curso-2---trabalho-em-equipe.firebaseapp.com",
+      projectId: "curso-2---trabalho-em-equipe"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const menuScreen = document.getElementById('menuScreen');
+    const lobbyScreen = document.getElementById('lobbyScreen');
+    const gameScreen = document.getElementById('gameScreen');
+    const avatarInput = document.getElementById('avatarInput');
+    const createBtn = document.getElementById('createBtn');
+    const joinBtn = document.getElementById('joinBtn');
+    const roomCodeInput = document.getElementById('roomCodeInput');
+    const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+    const startBtn = document.getElementById('startBtn');
+    const avatarContainer = document.getElementById('avatarContainer');
+    const roleDisplay = document.getElementById('roleDisplay');
+    const gameDiv = document.getElementById('gameDiv');
+    const fileStatus = document.getElementById('fileStatus');
+
+    let roomRef, playerId, role, leaderId, avatarData;
+
+    avatarInput.addEventListener('change', () => {
+      const file = avatarInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => avatarData = e.target.result;
+      reader.readAsDataURL(file);
+      fileStatus.textContent = `Imagem selecionada: ${file.name}`;
+    });
+
+     
+    // Novas variáveis para o jogo
+    let gameTimer;
+    let gameTimeLeft = 180; // 3 minutos
+    let currentPage = 0;
+    let correctWire;
+    let wireColors = [];
+    let gameConfig = {};
+    
+    // Configurações do jogo
+    const MANUAL_PAGES = [
+      'img/manual1.png',
+      'img/manual2.png',
+      'img/manual3.png',
+      'img/manual4.png'
+    ];
+    
+    const POSSIBLE_WIRE_COLORS = [
+      '#FF0000', // Vermelho
+      '#00FF00', // Verde
+      '#0000FF', // Azul
+      '#FFFF00', // Amarelo
+      '#FF00FF', // Magenta
+      '#00FFFF', // Ciano
+      '#FFA500', // Laranja
+      '#800080'  // Roxo
+    ];
+    
+    // Funções do jogo
+    function startGame() {
+      roleDisplay.textContent = `Você é: ${role}`;
+      
+      if (role === 'Manual') {
+        setupManual();
+      } else {
+        setupPuzzle();
+      }
+      
+      startGameTimer();
+    }
+    
+    function setupManual() {
+      gameDiv.innerHTML = `
+        <h3>Manual de Instruções</h3>
+        <div class="manual-container">
+          <img src="${MANUAL_PAGES[0]}" class="manual-page active" id="manualPage">
+          <div class="manual-controls">
+            <button class="btn" id="prevPage">Anterior</button>
+            <span id="pageCounter">1/${MANUAL_PAGES.length}</span>
+            <button class="btn" id="nextPage">Próxima</button>
+          </div>
+        </div>
+        <div class="timer-display" id="gameTimerDisplay">03:00</div>
+      `;
+      
+      currentPage = 0;
+      document.getElementById('prevPage').onclick = prevPage;
+      document.getElementById('nextPage').onclick = nextPage;
+    }
+    
+    function setupPuzzle() {
+      // Gerar configuração aleatória do puzzle
+      const numWires = Math.floor(Math.random() * 3) + 3; // 3-5 fios
+      wireColors = [];
+      
+      // Selecionar cores aleatórias sem repetição
+      const availableColors = [...POSSIBLE_WIRE_COLORS];
+      for (let i = 0; i < numWires; i++) {
+        const randomIndex = Math.floor(Math.random() * availableColors.length);
+        wireColors.push(availableColors.splice(randomIndex, 1)[0]);
+      }
+      
+      // Escolher o fio correto aleatoriamente
+      correctWire = Math.floor(Math.random() * numWires);
+      
+      // Salvar configuração no Firebase
+      gameConfig = {
+        wireColors,
+        correctWire,
+        bombDefused: false
+      };
+      
+      roomRef.update({ gameConfig });
+      
+      // Criar interface do puzzle
+      gameDiv.innerHTML = `
+        <h3>Desarme a Bomba!</h3>
+        <div class="wire-puzzle" id="wirePuzzle"></div>
+        <div class="wire-colors" id="wireColorsDisplay"></div>
+        <div class="timer-display" id="gameTimerDisplay">03:00</div>
+        <div class="success-message" id="successMessage">Bomba desarmada com sucesso!</div>
+        <div class="fail-message" id="failMessage">Bomba explodiu!</div>
+      `;
+      
+      const wirePuzzle = document.getElementById('wirePuzzle');
+      const wireColorsDisplay = document.getElementById('wireColorsDisplay');
+      
+      // Criar fios
+      wireColors.forEach((color, index) => {
+        const wire = document.createElement('div');
+        wire.className = 'wire';
+        wire.style.setProperty('--wire-color', color);
+        wire.dataset.index = index;
+        wire.onclick = () => cutWire(index);
+        wirePuzzle.appendChild(wire);
+      });
+      
+      // Mostrar cores disponíveis
+      wireColors.forEach(color => {
+        const colorSample = document.createElement('div');
+        colorSample.className = 'wire-color-sample';
+        colorSample.style.backgroundColor = color;
+        wireColorsDisplay.appendChild(colorSample);
+      });
+    }
+    
+    function prevPage() {
+      if (currentPage > 0) {
+        currentPage--;
+        updateManualPage();
+      }
+    }
+    
+    function nextPage() {
+      if (currentPage < MANUAL_PAGES.length - 1) {
+        currentPage++;
+        updateManualPage();
+      }
+    }
+    
+    function updateManualPage() {
+      document.getElementById('manualPage').src = MANUAL_PAGES[currentPage];
+      document.getElementById('pageCounter').textContent = `${currentPage + 1}/${MANUAL_PAGES.length}`;
+    }
+    
+    function cutWire(wireIndex) {
+      const wire = document.querySelectorAll('.wire')[wireIndex];
+      wire.classList.add('cut');
+      
+      if (wireIndex === correctWire) {
+        // Bomba desarmada
+        gameConfig.bombDefused = true;
+        roomRef.update({ gameConfig });
+        document.getElementById('successMessage').style.display = 'block';
+        clearInterval(gameTimer);
+      } else {
+        // Bomba explodiu
+        document.getElementById('failMessage').style.display = 'block';
+        clearInterval(gameTimer);
+      }
+    }
+    
+    function startGameTimer() {
+      gameTimeLeft = 180;
+      updateGameTimer();
+      
+      gameTimer = setInterval(() => {
+        gameTimeLeft--;
+        updateGameTimer();
+        
+        if (gameTimeLeft <= 0) {
+          clearInterval(gameTimer);
+          if (role === 'Manual') {
+            alert('Tempo esgotado! A bomba explodiu!');
+          } else {
+            document.getElementById('failMessage').style.display = 'block';
+          }
+        }
+      }, 1000);
+    }
+    
+    function updateGameTimer() {
+      const minutes = Math.floor(gameTimeLeft / 60);
+      const seconds = gameTimeLeft % 60;
+      document.getElementById('gameTimerDisplay').textContent = 
+        `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      
+      // Mudar cor quando o tempo estiver acabando
+      if (gameTimeLeft <= 30) {
+        document.getElementById('gameTimerDisplay').style.color = '#FF5252';
+      }
+    }
+    
+    // Atualizar a função joinRoom para monitorar o gameConfig
+    async function joinRoom(code) {
+      const doc = await roomRef.get();
+      leaderId = doc.data().leader;
+      const players = doc.data().players || [];
+      role = players.some(p => p.role === 'Manual') ? 'Desarmador' : 'Manual';
+      const newPlayer = { id: playerId, role, avatar: avatarData };
+      await roomRef.update({ players: [...players, newPlayer] });
+      roomCodeDisplay.textContent = code;
+      showScreen(lobbyScreen);
+      
+      roomRef.onSnapshot(snap => {
+        const data = snap.data();
+        updateLobby(data);
+        
+        if (data.gameStarted) {
+          if (data.players.length === 2) {
+            showScreen(gameScreen);
+            startGame();
+          }
+          
+          // Monitorar se a bomba foi desarmada
+          if (data.gameConfig?.bombDefused && role === 'Manual') {
+            document.getElementById('successMessage').style.display = 'block';
+            clearInterval(gameTimer);
+          }
+        }
+      });
+    }
+
+    createBtn.onclick = async () => {
+      if (!avatarData) return alert('Selecione um avatar.');
+      playerId = Math.random().toString(36).substr(2, 9);
+      const code = Math.random().toString(36).substr(2, 6).toUpperCase();
+      roomRef = db.collection('rooms').doc(code);
+      await roomRef.set({ players: [], leader: playerId, gameStarted: false });
+      joinRoom(code);
+    };
+
+    joinBtn.onclick = async () => {
+      if (!avatarData) return alert('Selecione um avatar.');
+      const code = roomCodeInput.value.trim().toUpperCase();
+      if (!code) return alert('Informe o código da sala');
+      roomRef = db.collection('rooms').doc(code);
+      const doc = await roomRef.get();
+      if (!doc.exists) return alert('Sala não encontrada');
+      playerId = Math.random().toString(36).substr(2, 9);
+      joinRoom(code);
+    };
+
+    async function joinRoom(code) {
+      const doc = await roomRef.get();
+      leaderId = doc.data().leader;
+      const players = doc.data().players || [];
+      role = players.some(p => p.role === 'Manual') ? 'Desarmador' : 'Manual';
+      const newPlayer = { id: playerId, role, avatar: avatarData };
+      await roomRef.update({ players: [...players, newPlayer] });
+      roomCodeDisplay.textContent = code;
+      showScreen(lobbyScreen);
+      roomRef.onSnapshot(snap => {
+        const data = snap.data();
+        updateLobby(data);
+        if (data.gameStarted && data.players.length === 2) {
+          showScreen(gameScreen);
+          startGame();
+        }
+      });
+    }
+
+    function updateLobby(data) {
+      const players = data.players || [];
+      avatarContainer.innerHTML = players.map(p =>
+        `<div class="avatar${p.id === data.leader ? ' leader' : ''}">
+          <img src="${p.avatar}" alt="Avatar">
+        </div>`
+      ).join('');
+      if (players.length === 2 && playerId === data.leader) startBtn.style.display = 'block';
+      else startBtn.style.display = 'none';
+    }
+
+    startBtn.onclick = () => {
+      roomRef.update({ gameStarted: true });
+    };
+
+    function startGame() {
+      roleDisplay.textContent = `Você é: ${role}`;
+      const imgURL = role === 'Manual'
+        ? 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Bomb_icon.svg/512px-Bomb_icon.svg.png'
+        : 'https://cdn-icons-png.flaticon.com/512/2913/2913463.png';
+
+      gameDiv.innerHTML = `<img src="${imgURL}" alt="Tela do jogo" class="game-image">`;
+    }
+
+    function showScreen(screen) {
+      [menuScreen, lobbyScreen, gameScreen].forEach(s => s.classList.remove('active'));
+      screen.classList.add('active');
+    }
+  </script>
+</body>
+</html>
