@@ -8,12 +8,10 @@
 </head>
 <body>
 
-<!-- Ícone de Perfil -->
 <div id="profileContainer" onclick="backToMenu()">
   <img id="profileImage" src="img/img1.png" alt="Foto de Perfil">
 </div>
 
-<!-- Menu Principal -->
 <div class="container" id="menu">
   <h1>Teste de Ética no Ambiente de Trabalho</h1>
   <p>Bem-vindo ao simulador de dilemas éticos, aqui será testada toda sua integridade como ser. Boa sorte!</p>
@@ -35,7 +33,6 @@
   </div>
 </div>
 
-<!-- Seleção de Perfil -->
 <div class="container hidden" id="profileSelection">
   <h2>Escolha seu Avatar</h2>
   <div class="profile-grid">
@@ -49,7 +46,6 @@
   <button class="btn" onclick="hideProfileSelection()">Voltar</button>
 </div>
 
-<!-- Instruções -->
 <div class="container hidden" id="instructions">
   <h2>Instruções</h2>
   <p>
@@ -59,7 +55,6 @@
   <button class="btn" onclick="backToMenu()">Voltar ao Menu</button>
 </div>
 
-<!-- Jogo -->
 <div class="container hidden" id="game">
   <h2><span class="icon-number" id="questionNumber">1</span><span id="questionTitle">Questão</span></h2>
   <img id="questionGif" src="" alt="GIF da Questão">
@@ -67,7 +62,6 @@
   <div id="answers"></div>
 </div>
 
-<!-- Resultado -->
 <div class="container hidden" id="result">
   <h2>🏁 Resultado Final</h2>
   
@@ -115,7 +109,6 @@ function resetHighScore() {
   updateScoreDisplay();
   hideResetConfirmation();
   
-  // Feedback visual
   const feedback = document.createElement('div');
   feedback.textContent = 'Recorde resetado!';
   feedback.style.position = 'fixed';
@@ -128,7 +121,6 @@ function resetHighScore() {
   feedback.style.zIndex = '1000';
   feedback.style.animation = 'fadeOut 1.5s forwards';
   feedback.style.pointerEvents = 'none'; 
-
   
   document.body.appendChild(feedback);
   
@@ -161,18 +153,18 @@ const questions = [
   {
     title: "Acidente da Gelatina",
     text: "Em um dia comum, um colega denuncia outro por ter colocado seu grampeador em uma gelatina. Qual sua atitude?",
-    gif: "gifs/gelatina.gif",
+    gif: "gifs/etica_q1.gif",
     answers: [
       { text: "A) Reúne os envolvidos para resolver discretamente.", ethical: true },
       { text: "B) Ri freneticamente enquanto aponta para o colega.", ethical: false },
-      { text: "C) Espalha a história pelo escritório, dando a ele o apelido de 'guloso'.", ethical: false }
-      ,{ text: "D) Recorre ao RH.", ethical: true }
+      { text: "C) Espalha a história pelo escritório, dando a ele o apelido de 'guloso'.", ethical: false },
+      { text: "D) Recorre ao RH.", ethical: true }
     ]
   },
   {
     title: "Assédio no Trabalho",
     text: "Durante uma ida à cozinha, você vê seu colega constrangendo uma de suas colegas. O que você faz?",
-    gif: "gifs/tarado.gif",
+    gif: "gifs/etica_q2.gif",
     answers: [
       { text: "A) Denuncia o comportamento para seus superiores.", ethical: true },
       { text: "B) Não faz nada e finge que nada aconteceu.", ethical: false },
@@ -182,7 +174,7 @@ const questions = [
   {
     title: "Identidade Falsa",
     text: "Você descobre que seu velho colega usa um nome falso. O que você faz?",
-    gif: "gifs/anonimo.gif",
+    gif: "gifs/etica_q3.gif",
     answers: [
       { text: "A) Reporta às autoridades.", ethical: true },
       { text: "B) Alerta seus colegas sobre a falsa identidade.", ethical: false },
@@ -192,7 +184,7 @@ const questions = [
   {
     title: "Colega no Parque",
     text: "Seu colega mente sobre estar doente para faltar ao trabalho e você descobre que ele foi ao parque aquático. O que você faz?",
-    gif: "gifs/etica_q1.gif",
+    gif: "gifs/3.gif",
     answers: [
       { text: "A) dedura ele no grupo da firma com prints e marca o chefe.", ethical: false },
       { text: "B) vai também ao parque e cobra a entrada em nome da empresa.", ethical: false },
@@ -204,7 +196,7 @@ const questions = [
   {
     title: "Café com Rancor",
     text: "Você nota que o café da firma está péssimo—parece água suja com gosto de rancor. Seu colega, o “Barista” oficial, faz piadas ácidas sobre todos que reclamam. O que você faz?",
-    gif: "gifs/etica_q2.gif",
+    gif: "gifs/2.gif",
     answers: [
       { text: "A) Paga um Uber para cada funcionário na cafeteria do shopping.", ethical: false },
       { text: "B) Volta na caixa de café e mistura água de coco para “melhorar o sabor” sem avisar ninguém.", ethical: false },
@@ -215,7 +207,7 @@ const questions = [
   {
     title: "Chefe Atrasado",
     text: "Seu chefe chega atrasado diariamente e aponta o dedo para você quando algo dá errado, mas chama você para carregar caixas pesadas. Como reagir?",
-    gif: "gifs/etica_q3.gif",
+    gif: "gifs/a",
     answers: [
       { text: "A) Bota o despertador pra tocar a cada 5 minutos até mandar um áudio de madrugada: “Chefe, bora acordar?”.", ethical: false },
       { text: "B) Aguarda o próximo erro e fala alto: “Claro, foi tudo culpa do meu atraso imaginário!”", ethical: true },
@@ -334,9 +326,6 @@ const questions = [
     ]
   }
 ];
-];
-
-
 
 // Funções do sistema de perfil
 function loadProfile() {
@@ -401,7 +390,6 @@ function selectAnswer(isEthical) {
 }
 
 function showResult() {
-  // Atualiza placar
   lastScore = score;
   if (score > highScore) {
     highScore = score;
@@ -409,27 +397,22 @@ function showResult() {
   }
   localStorage.setItem('lastScore', lastScore);
   
-  // Mostra resultados
   document.getElementById("game").classList.add("hidden");
   document.getElementById("result").classList.remove("hidden");
   
-  // Atualiza avatar
   document.getElementById("resultAvatar").src = PROFILE_IMAGES[currentProfile];
   
   const totalPoints = questions.length * POINTS_PER_CORRECT;
   
-  // Anima a pontuação
   animateValue("finalScoreValue", 0, score, 1000);
   document.getElementById("totalPossibleScore").textContent = totalPoints;
   document.getElementById("highScoreDisplay").textContent = highScore;
   
-  // Anima a barra de progresso
   const percentage = (score / totalPoints) * 100;
   setTimeout(() => {
     document.getElementById("scoreProgress").style.width = `${percentage}%`;
   }, 300);
   
-  // Mensagem de desempenho
   let message = "";
   if (percentage >= 90) message = "✨ Ética Impecável! Você é um exemplo no ambiente de trabalho.";
   else if (percentage >= 70) message = "🔎 Excelente! Suas decisões são quase sempre corretas.";
@@ -439,8 +422,9 @@ function showResult() {
   
   document.getElementById("finalMessage").textContent = message;
   
-  // Atualiza display no menu também
   updateScoreDisplay();
+  
+  localStorage.setItem("score_empatia", highScore);
 }
 
 // Função para animar números
@@ -481,10 +465,7 @@ function updateScoreDisplay() {
 
 window.onload = function() {
   loadProfile();
-  updateMultiplierDisplay();
 };
-
-localStorage.setItem("score_empatia", highScore);
 
 </script>
 </body>
