@@ -1,0 +1,210 @@
+:root {
+      --bg: #0d0d0d;
+      --bg-soft: #1a1a1a;
+      --text: #e8f0f2;
+      --text-soft: #b0b0b0;
+      --highlight: #3aff8a;
+      --highlight-soft: rgba(58, 255, 138, 0.2);
+      --button-hover: #00ff9c;
+      --banner-bg: linear-gradient(135deg, #1a2e1d 0%, #0d0d0d 100%);
+      --border-radius: 12px;
+      --box-shadow: 0 8px 24px rgba(58, 255, 138, 0.1);
+      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    body {
+      font-family: "Russo One", sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .banner {
+      position: relative;
+      color: var(--highlight);
+      font-family: "Lilita One", cursive;
+      letter-spacing: 0.1em;
+      width: 100%;
+      padding: 80px 20px;
+      background: var(--banner-bg);
+      font-size: 2.8rem;
+      text-align: center;
+      margin-bottom: 50px;
+      border-bottom: 2px solid var(--highlight-soft);
+      overflow: hidden;
+      box-shadow: var(--box-shadow);
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--highlight);
+      margin-bottom: 30px;
+    }
+
+    .intro p { 
+      text-align: center;
+      line-height: 1.5; 
+      max-width: 800px; 
+      margin: 20px auto; 
+      color: #b0b0b0; 
+    }
+
+    .user-info {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .user-name {
+      color: var(--highlight);
+      font-size: 1.2em;
+    }
+
+    .fundamentos {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 2rem;
+      margin: 40px 0;
+    }
+    .fundamento {
+      text-align: center;
+      cursor: pointer;
+    }
+    .fundamento span {
+      font-size: 50px;
+      color: var(--highlight);
+      background: var(--highlight-soft);
+      padding: 15px;
+      border-radius: 50%;
+      transition: var(--transition);
+    }
+    .fundamento:hover span {
+      transform: scale(1.1);
+      background: var(--highlight);
+      color: var(--bg);
+      border-radius: 30px;
+    }
+    .descricao {
+      max-width: 700px;
+      margin: 0 auto 40px;
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 12px;
+      display: none;
+    }
+    .questionnaire {
+      background: var(--bg-soft);
+      padding: 60px 40px;
+      border-radius: var(--border-radius);
+      margin: 60px auto;
+      max-width: 800px;
+      box-shadow: var(--box-shadow);
+      border: 1px solid rgba(58, 255, 138, 0.1);
+      overflow: hidden;
+    }
+
+    fieldset {
+      border: none;
+      margin: 0 0 45px 0;
+      padding: 0 0 30px 0;
+      border-bottom: 1px solid rgba(58, 255, 138, 0.1);
+    }
+
+    fieldset:last-of-type {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    legend {
+      margin: 0 auto 20px;
+      padding: 0;
+      width: 100%;
+      font-size: 1.2rem;
+      color: var(--text);
+      text-align: center;
+    }
+
+    .scale {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .scale-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      min-width: 80px;
+    }
+
+    .scale input[type="radio"] {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--text-soft);
+      border-radius: 50%;
+      cursor: pointer;
+      position: relative;
+      transition: var(--transition);
+    }
+
+    .scale input[type="radio"]:checked {
+      border-color: var(--highlight);
+      background-color: var(--highlight-soft);
+    }
+
+    .scale label {
+      margin-top: 8px;
+      font-size: 0.9rem;
+      color: var(--text-soft);
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .btn {
+      display: block;
+      margin: 40px auto;
+      padding: 14px 32px;
+      background: var(--highlight);
+      color: var(--bg);
+      border: none;
+      border-radius: 30px;
+      font-size: 1rem;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+      background: var(--button-hover);
+      transform: scale(1.05);
+    }
+
+    .logout-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 8px 16px;
+      background: #ff3a3a;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-family: "Lilita One", cursive;
+    }
+
+    .logout-btn:hover {
+      background: #a81a1a;
+    }

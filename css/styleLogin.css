@@ -1,0 +1,90 @@
+* {
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0d0d0d 0%, #1a1a2e 100%);
+      color: #e8f0f2;
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        linear-gradient(rgba(58, 255, 138, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(58, 255, 138, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      z-index: -1;
+    }
+
+    h2 {
+      color: #3aff8a;
+      margin-bottom: 20px;
+      text-shadow: 0 0 5px rgba(58, 255, 138, 0.3);
+    }
+
+    .login-container {
+      background: rgba(26, 26, 26, 0.95);
+      padding: 30px;
+      border-radius: 12px;
+      border: 2px solid rgba(13, 163, 73, 0.336);
+      box-shadow: 0 0 20px rgba(58, 255, 138, 0.1);
+      width: 350px;
+      text-align: center;
+      font-family: 'Russo One';
+      letter-spacing: 3px;
+    }
+
+    input {
+      padding: 12px;
+      margin: 10px 0;
+      width: 280px;
+      border: none;
+      border-radius: 8px;
+      background: #1a1a1a;
+      color: white;
+      font-size: 1rem;
+    }
+    button {
+      padding: 12px 24px;
+      background: #3aff8a;
+      color: black;
+      border: none;
+      border-radius: 20px;
+      font-size: 1rem;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 25px;
+      transition: all 0.3s ease;
+    }
+    button:hover {
+      background: #2ce278;
+      transform: scale(1.05);
+    }
+    .msg {
+      margin-top: 20px;
+      min-height: 20px;
+      text-align: center;
+    }
+    .caixa {
+      border: 2px solid rgba(13, 163, 73, 0.952);
+    }
+    .logo {
+      width: 160px;       
+      height: auto;       
+      display: block;     
+      margin: 0 auto;  
+      filter: drop-shadow(15px 8px 2px #08b94c33);
+    }
