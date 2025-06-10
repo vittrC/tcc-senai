@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teste de Ética no Trabalho</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="profileContainer" onclick="backToMenu()">
+  <img id="profileImage" src="img/img1.png" alt="Foto de Perfil">
+</div>
+
+<div class="container" id="menu">
+  <h1>Teste de Ética no Ambiente de Trabalho</h1>
+  <p>Bem-vindo ao simulador de dilemas éticos, aqui será testada toda sua integridade como ser. Boa sorte!</p>
+  <button class="btn" onclick="startGame()">Iniciar o Jogo</button>
+  <button class="btn" onclick="showInstructions()">Instruções</button>
+  <button class="btn" onclick="showProfileSelection()">Alterar Avatar</button>
+  
+  <div class="simple-score">
+    <p>🏆 Recorde: <span id="highScoreValue">0</span></p>
+    <p>Última pontuação: <span id="lastScoreValue">0</span></p>
+    <button id="resetScoreBtn" class="reset-btn" onclick="showResetConfirmation()">Resetar Pontuação</button>
+    <div id="resetConfirm" class="reset-confirm hidden">
+      Tem certeza que deseja resetar o recorde?
+      <div class="reset-options">
+        <button class="btn" onclick="resetHighScore()">Sim</button>
+        <button class="reset-btn" onclick="hideResetConfirmation()">Não</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container hidden" id="profileSelection">
+  <h2>Escolha seu Avatar</h2>
+  <div class="profile-grid">
+    <img src="img/img1.png" class="profile-option" onclick="selectProfile('1')">
+    <img src="img/img2.png" class="profile-option" onclick="selectProfile('2')">
+    <img src="img/img3.png" class="profile-option" onclick="selectProfile('3')">
+    <img src="img/img4.png" class="profile-option" onclick="selectProfile('4')">
+    <img src="img/img5.png" class="profile-option" onclick="selectProfile('5')">
+    <img src="img/img6.png" class="profile-option" onclick="selectProfile('6')">
+  </div>
+  <button class="btn" onclick="hideProfileSelection()">Voltar</button>
+</div>
+
+<div class="container hidden" id="instructions">
+  <h2>Instruções</h2>
+  <p>
+    Enfrente dilemas que podem ocorrer num ambiente de trabalho.<br>
+    Cada decisão pode aumentar sua moral ou acabar te dando a fama de um exemplo do que NÃO fazer.
+  </p>
+  <button class="btn" onclick="backToMenu()">Voltar ao Menu</button>
+</div>
+
+<div class="container hidden" id="game">
+  <h2><span class="icon-number" id="questionNumber">1</span><span id="questionTitle">Questão</span></h2>
+  <img id="questionGif" src="" alt="GIF da Questão">
+  <p id="questionText">Texto da pergunta...</p>
+  <div id="answers"></div>
+</div>
+
+<div class="container hidden" id="result">
+  <h2>🏁 Resultado Final</h2>
+  
+  <div style="display: flex; align-items: center; justify-content: center; gap: 30px; margin: 20px 0;">
+    <div style="text-align: center;">
+      <img id="resultAvatar" src="img/img1.png" style="width: 120px; height: 120px; border-radius: 50%; border: 3px solid #00ff00; box-shadow: 0 0 20px #00ff00;">
+    </div>
+    
+    <div style="text-align: center;">
+      <div style="font-size: 2.5em; color: #ffff00; text-shadow: 0 0 10px #ffff00; margin-bottom: 10px;">
+        <span id="finalScoreValue">0</span>/<span id="totalPossibleScore">3000</span>
+      </div>
+      <div style="background: rgba(0, 255, 0, 0.2); padding: 10px; border-radius: 10px;">
+        <p style="font-size: 1.1em;">Pontuação Máxima: <span id="highScoreDisplay">0</span></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="scoreMeter" style="height: 20px; background: rgba(0, 255, 0, 0.2); border-radius: 10px; margin: 20px 0; overflow: hidden;">
+    <div id="scoreProgress" style="height: 100%; background: linear-gradient(90deg, #00ff00, #00ff88); width: 0%; transition: width 1s ease;"></div>
+  </div>
+
+  <p id="finalMessage" style="font-size: 1.3em; margin: 20px 0; min-height: 60px;"></p>
+  
+  <div style="margin-top: 30px;">
+    <button class="btn" onclick="backToMenu()">Voltar ao Menu</button>
+  </div>
+</div>
+
+<script>
+
+function showResetConfirmation() {
+  document.getElementById("resetConfirm").classList.remove("hidden");
+  document.getElementById("resetScoreBtn").classList.add("hidden");
+}
+
+function hideResetConfirmation() {
+  document.getElementById("resetConfirm").classList.add("hidden");
+  document.getElementById("resetScoreBtn").classList.remove("hidden");
+}
+
+function resetHighScore() {
+  highScore = 0;
+  localStorage.setItem('highScore', highScore);
+  updateScoreDisplay();
+  hideResetConfirmation();
+  
+  const feedback = document.createElement('div');
+  feedback.textContent = 'Recorde resetado!';
+  feedback.style.position = 'fixed';
+  feedback.style.top = '50%';
+  feedback.style.left = '50%';
+  feedback.style.transform = 'translate(-50%, -50%)';
+  feedback.style.color = '#ff0000';
+  feedback.style.fontSize = '1.5em';
+  feedback.style.textShadow = '0 0 8px #ff0000';
+  feedback.style.zIndex = '1000';
+  feedback.style.animation = 'fadeOut 1.5s forwards';
+  feedback.style.pointerEvents = 'none'; 
+  
+  document.body.appendChild(feedback);
+  
+  setTimeout(() => {
+    feedback.remove();
+  }, 1500);
+}
+
+
+// Constantes
+const POINTS_PER_CORRECT = 150;
+const PROFILE_IMAGES = {
+  '1': 'img/img1.png',
+  '2': 'img/img2.png',
+  '3': 'img/img3.png',
+  '4': 'img/img4.png',
+  '5': 'img/img5.png',
+  '6': 'img/img6.png'
+};
+
+let currentQuestion = 0;
+let score = 0;
+let currentProfile = '1';
+let highScore = localStorage.getItem('highScore') || 0;
+let lastScore = localStorage.getItem('lastScore') || 0;
+
+const questions = [
+  [
+  {
+    "title": "Acidente da Gelatina",
+    "text": "Em um dia comum, um colega denuncia outro por ter colocado seu grampeador em uma gelatina. Qual sua atitude?",
+    "gif": "gifs/etica_q1.gif",
+    "answers": [
+      { "text": "A) Ri freneticamente enquanto aponta para o colega.", "ethical": false },
+      { "text": "B) Recorre ao RH.", "ethical": true },
+      { "text": "C) Espalha a história pelo escritório, dando a ele o apelido de 'guloso'.", "ethical": false },
+      { "text": "D) Reúne os envolvidos para resolver discretamente.", "ethical": true }
+    ]
+  },
+  {
+    "title": "Assédio no Trabalho",
+    "text": "Durante uma ida à cozinha, você vê seu colega constrangendo uma de suas colegas. O que você faz?",
+    "gif": "gifs/etica_q2.gif",
+    "answers": [
+      { "text": "A) Conversa com o colega e diz que aquilo não é legal.", "ethical": true },
+      { "text": "B) Não faz nada e finge que nada aconteceu.", "ethical": false },
+      { "text": "C) Denuncia o comportamento para seus superiores.", "ethical": true }
+    ]
+  },
+  {
+    "title": "Identidade Falsa",
+    "text": "Você descobre que seu velho colega usa um nome falso. O que você faz?",
+    "gif": "gifs/etica_q3.gif",
+    "answers": [
+      { "text": "A) Confronta-o pessoalmente, adotando postura agressiva.", "ethical": false },
+      { "text": "B) Reporta às autoridades.", "ethical": true },
+      { "text": "C) Alerta seus colegas sobre a falsa identidade.", "ethical": false }
+    ]
+  },
+  {
+    "title": "Colega no Parque",
+    "text": "Seu colega mente sobre estar doente para faltar ao trabalho e você descobre que ele foi ao parque. O que você faz?",
+    "gif": "gifs/etica_q4.gif",
+    "answers": [
+      { "text": "A) ignora. Ética não é seu forte.", "ethical": false },
+      { "text": "B) dedura ele no grupo da firma com prints e marca o chefe.", "ethical": false },
+      { "text": "C) Conversa com ele em particular e sugere que seja honesto da próxima vez.", "ethical": true },
+      { "text": "D) vai também ao parque e cobra a entrada em nome da empresa.", "ethical": false },
+      { "text": "E) faz stories marcando ele e a empresa.", "ethical": false }
+    ]
+  },
+  {
+    "title": "SOS Plantas",
+    "text": "Você descobre que o RH comprou plantas novas, mas ninguém rega. As plantas estão morrendo mais rápido que suas esperanças de promoção. Como agir?",
+    "gif": "gifs/etica_q5.gif",
+    "answers": [
+      { "text": "A) Substitui as plantas por bonecos de papel e aguarda admiração geral pela “art installation”.", "ethical": false },
+      { "text": "B) Derruba todas as plantas para que ninguém “sofra com a morte delas” de novo.", "ethical": false },
+      { "text": "C) Envia e-mail para toda a empresa: “SOS Vegetação Corporativa”.", "ethical": false },
+      { "text": "D) Pega um regador e joga água nas plantas dizendo “sobrevivam como eu tento sobreviver aqui”.", "ethical": true }
+    ]
+  },
+  {
+    "title": "Reunião do Caos",
+    "text": "Durante uma reunião, seu colega ativa um filtro de gato sem perceber e o chefe segue falando como se nada tivesse acontecido. O grupo está se segurando para não rir. O que você faz?",
+    "gif": "gifs/etica_q6.gif",
+    "answers": [
+      { "text": "A) Ria ao vivo, tira print e faz adesivo para o grupo da firma.", "ethical": false },
+      { "text": "B) Fica sério, ajuda seu colega discretamente e evita expor a situação mais do que já está.", "ethical": true },
+      { "text": "C) Apresenta um PowerPoint com gráficos sobre o impacto dos filtros no clima organizacional.", "ethical": false },
+      { "text": "D) Manda mensagem no chat: “miau chefe, qual o próximo passo?”.", "ethical": false }
+    ]
+  },
+  {
+    "title": "Caixa de Sugestões",
+    "text": "A empresa colocou uma caixa de sugestões anônimas. No primeiro dia, aparece um bilhete dizendo: 'socorro, prendo minha alma aqui todo dia'. O RH convoca uma investigação. Qual sua atitude ética?",
+    "gif": "gifs/etica_q7.gif",
+    "answers": [
+      { "text": "A) Cria um canal no YouTube para ler todas as sugestões em voz dramática.", "ethical": false },
+      { "text": "B) Sugere ao RH que leve a sugestão a sério e abra espaço para ouvir os funcionários sem punição.", "ethical": true },
+      { "text": "C) Indica os suspeitos com base em quem mais parece estar à beira de um colapso.", "ethical": false },
+      { "text": "D) Escreve outro bilhete dizendo: “minha alma está na máquina de café, tragam incenso”.", "ethical": false }
+    ]
+  },
+  {
+    "title": "Perfume Tóxico",
+    "text": "Um funcionário novo usa tanto perfume que o andar inteiro parece uma loja de cosméticos. Pessoas começam a espirrar, tossir e fazer reuniões no estacionamento. O que você faz?",
+    "gif": "gifs/etica_q8.gif",
+    "answers": [
+      { "text": "A) Compra um purificador de ar e liga no máximo toda vez que ele passa.", "ethical": false },
+      { "text": "B) Conversa com ele em particular, com cuidado, explicando os efeitos sobre os colegas.", "ethical": true },
+      { "text": "C) Faz uma paródia de propaganda de perfume com ele como personagem principal.", "ethical": false },
+      { "text": "D) Instala cartazes de “proibido fragrâncias nível apocalipse”.", "ethical": false }
+    ]
+  },
+  {
+    "title": "Sabotagem da Geladeira",
+    "text": "Alguém colocou um peixe cru na geladeira da empresa como 'vingança' por furto de marmita. O ambiente agora tem cheiro de porto velho. Qual a atitude ética?",
+    "gif": "gifs/etica_q9.gif",
+    "answers": [
+      { "text": "A) Coloca ventilador apontado pra dentro da geladeira pra ver se espalha o castigo.", "ethical": false },
+      { "text": "B) Informa o RH sobre o ocorrido e propõe câmeras ou identificação de alimentos como solução.", "ethical": true },
+      { "text": "C) Escreve em todas as marmitas: 'tocou, apodrece'.", "ethical": false },
+      { "text": "D) Organiza um 'júri da geladeira' para descobrir o culpado.", "ethical": false }
+    ]
+  },
+  {
+    "title": "Elevador da Verdade",
+    "text": "Durante uma pane, você e seu chefe ficam presos no elevador por 2 horas. Ele começa a desabafar sobre decisões erradas e pede sua opinião sincera. O que você faz?",
+    "gif": "gifs/etica_q10.gif",
+    "answers": [
+      { "text": "A) Diz: “Fique tranquilo, se der tudo errado aqui dentro, a culpa será da manutenção”.", "ethical": false },
+      { "text": "B) Oferece uma resposta honesta, mas com empatia, mostrando onde as decisões podem melhorar.", "ethical": true },
+      { "text": "C) Finge desmaiar para não participar da conversa.", "ethical": false },
+      { "text": "D) Aproveita e apresenta um pitch de startup que “melhora chefes em tempo real”.", "ethical": false }
+    ]
+  },
+  {
+    "title": "Treinamento Humilhante",
+    "text": "Você descobre que um curso obrigatório da empresa tem slides dos anos 90 e gifs de castores ‘ensinando’ ética. Um novo funcionário fica visivelmente constrangido. O que você faz?",
+    "gif": "gifs/etica_q11.gif",
+    "answers": [
+      { "text": "A) Recria os slides com estética de TikTok e envia para a diretoria.", "ethical": false },
+      { "text": "B) Dá apoio ao novo colega, depois comunica ao setor responsável sugerindo atualização no conteúdo.", "ethical": true },
+      { "text": "C) Grita durante a aula: “O castor está certo, obedeçam o roedor!”.", "ethical": false },
+      { "text": "D) Cria um grupo paralelo chamado 'Sobreviventes do Castor Ético'.", "ethical": false }
+    ]
+  },
+  {
+    "title": "Ambiente Silencioso Demais",
+    "text": "A empresa implementa política de silêncio absoluto para ‘aumentar foco’. Agora todos se comunicam por post-its. Um colega começa a desenvolver ansiedade com o ambiente. O que você faz?",
+    "gif": "gifs/etica_q12.gif",
+    "answers": [
+      { "text": "A) Sugere ajustes na política, incluindo pausas para conversa e mais canais de expressão saudáveis.", "ethical": true },
+      { "text": "B) Começa a se comunicar apenas por mímica exagerada.", "ethical": false },
+      { "text": "C) Cola uma JBL no teto com som de floresta para “quebrar o vazio”.", "ethical": false },
+      { "text": "D) Escreve os bilhetes em caps lock e com emojis para simular gritos.", "ethical": false }
+    ]
+  },
+  {
+    "title": "Hack do Horário",
+    "text": "Um funcionário criou um sistema que registra ponto automaticamente mesmo quando ele está dormindo. Você descobre isso sem querer. O que faz?",
+    "gif": "gifs/etica_q13.gif",
+    "answers": [
+      { "text": "A) Dá play em vídeos do YouTube com ronco de fundo e simula uma denúncia anônima.", "ethical": false },
+      { "text": "B) Relata a fraude discretamente ao setor responsável, preservando a seriedade do processo.", "ethical": true },
+      { "text": "C) Oferece melhorar o código dele em troca de parte dos lucros.", "ethical": false },
+      { "text": "D) Tenta vender o código como um serviço para startups que ‘valorizam liberdade’.", "ethical": false }
+    ]
+  },
+  {
+    "title": "PowerPoint Comprometedor",
+    "text": "Na apresentação da empresa, alguém acidentalmente abre um slide com print do grupo secreto dos colegas, cheio de apelidos para o chefe. O que fazer?",
+    "gif": "gifs/etica_q14.gif",
+    "answers": [
+      { "text": "A) Encaminha o erro ao responsável e sugere uma conversa madura com os envolvidos.", "ethical": true },
+      { "text": "B) Aplaude e diz: “finalmente a transparência que a gente queria”.", "ethical": false },
+      { "text": "C) Faz o print virar papel de parede dos computadores da empresa.", "ethical": false },
+      { "text": "D) Cria nova versão do grupo com nomes de legumes e migra todos pra lá.", "ethical": false }
+    ]
+  },
+  {
+    "title": "O Caso da Omelete",
+    "text": "Em toda plena segunda-feira, a empresa oferece omelete de almoço para os funcionários. Os funcionários suspeitam de que não se trata de um omelete mas sim de uma massa preparada sabor omelete. Qual sua atitude?",
+    "gif": "gifs/etica_q15.gif",
+    "answers": [
+      { "text": "A) Faz uma petição pedindo para trocar por “Omeletes de verdade”.", "ethical": false },
+      { "text": "B) Conversa com o setor responsável pela alimentação e sugere com respeito mais transparência sobre os ingredientes dos pratos.", "ethical": true },
+      { "text": "C) Sequestra uma galinha e corre pelado pela a cozinha enquanto grita “NÓS QUEREMOS OVOS DE VERDADE” (tudo isso enquanto segura a galinha pelas pernas).", "ethical": false },
+      { "text": "D) Simula um ataque de dejetos putridos usando pudim de chocolate, fazendo com que retirem o prato do cardapio.", "ethical": false }
+    ]
+  },
+  {
+    "title": "A Fritadeira do RH",
+    "text": "O RH decide instalar uma fritadeira de pastel na sala de convivência para melhorar o clima organizacional. Porém, o cheiro invade todo o escritório e ninguém mais consegue se concentrar. O que fazer?",
+    "gif": "gifs/etica_q16.gif",
+    "answers": [
+      { "text": "A) Coloca alarmes de incêndio falsos perto da fritadeira até ela ser removida.", "ethical": false },
+      { "text": "B) Conversa com o RH e propõe realocar a fritadeira para uma área ventilada ou limitar os horários de uso.", "ethical": true },
+      { "text": "C) Começa a vender refrigerante na sua mesa e transforma o andar num food court.", "ethical": false },
+      { "text": "D) Cria um abaixo-assinado exigindo frituras temáticas por dia da semana.", "ethical": false }
+    ]
+  },
+  {
+  "title": "O Hacker da Impressora",
+  "text": "Um colega descobre como imprimir sem que seu nome apareça no sistema e começa a usar isso para imprimir memes e cartas de amor não solicitadas. O que você faz?",
+  "gif": "gifs/etica_q17.gif",
+  "answers": [
+    { "text": "A) Conversa com ele sobre os riscos e sugere parar antes que alguém se prejudique.", "ethical": true },
+    { "text": "B) Usa o sistema pra imprimir uma denúncia anônima... sobre o próprio sistema.", "ethical": false },
+    { "text": "C) Responde às cartas de amor com críticas gramaticais em vermelho.", "ethical": false },
+    { "text": "D) Instala rastreamento na impressora e vende as provas para o RH.", "ethical": false }
+  ]
+},
+{
+  "title": "A Vassoura Voadora",
+  "text": "Durante a faxina coletiva, um colega se recusa a participar alegando que 'não foi contratado para limpar chão'. Isso gera desconforto no grupo. Qual atitude você toma?",
+  "gif": "gifs/etica_q18.gif",
+  "answers": [
+    { "text": "A) Conversa com ele sobre o espírito de equipe e sugere diálogo com a liderança.", "ethical": true },
+    { "text": "B) Escreve no chão com sujeira: 'aqui jaz a colaboração'.", "ethical": false },
+    { "text": "C) Contrata um mágico para fazê-lo “desaparecer” nas próximas limpezas.", "ethical": false },
+    { "text": "D) Joga sujeira só na mesa dele como “área exclusiva de aprendizado”.", "ethical": false }
+  ]
+},
+{
+  "title": "A Guerra dos Fones",
+  "text": "Dois colegas entram em conflito por causa de volume alto nos fones. Um ouve rock, o outro podcast de crimes reais narrados pelo palhaço caçarola. O clima fica tenso. Como agir?",
+  "gif": "gifs/etica_q19.gif",
+  "answers": [
+    { "text": "A) Media a conversa entre eles e propõe regras de uso de fones e limites de volume.", "ethical": true },
+    { "text": "B) Cria uma playlist com gritos de terror e bota no loop pra ver quem cede primeiro.", "ethical": false },
+    { "text": "C) Instaura o 'dia do silêncio total' como punição coletiva.", "ethical": false },
+    { "text": "D) Transforma o conflito em novela e grava episódios no banheiro.", "ethical": false }
+  ]
+},
+{
+  "title": "O Café dos Mortos",
+  "text": "Algo estranho acontece no escritório, o café do chefe passou a ter um gosto estranho logo depois do sumiço da urna funerária da tia vó de um dos funcionários. O que você faz?",
+  "gif": "gifs/etica_q20.gif",
+  "answers": [
+    { "text": "A) Alerta o chefe sobre o café sabotado.", "ethical": true },
+    { "text": "B) Distribui o café para o resto do escritório", "ethical": false },
+    { "text": "C) Começa a vender doses do café no copinho por R$2,50.", "ethical": false },
+    { "text": "D) Entrega o café para o funcionário dono da urna e o desmascara dizendo 'Gosto familiar né...'", "ethical": false }
+  ]
+}
+]
+
+]
+
+function loadProfile() {
+  const savedProfile = localStorage.getItem('profile');
+  if (savedProfile) currentProfile = savedProfile;
+  document.getElementById('profileImage').src = PROFILE_IMAGES[currentProfile];
+  updateScoreDisplay();
+}
+
+function showProfileSelection() {
+  document.getElementById("menu").classList.add("hidden");
+  document.getElementById("profileSelection").classList.remove("hidden");
+}
+
+function hideProfileSelection() {
+  document.getElementById("profileSelection").classList.add("hidden");
+  document.getElementById("menu").classList.remove("hidden");
+}
+
+function selectProfile(profileId) {
+  currentProfile = profileId;
+  localStorage.setItem('profile', profileId);
+  document.getElementById('profileImage').src = PROFILE_IMAGES[profileId];
+  hideProfileSelection();
+}
+
+// Funções do jogo principal
+function startGame() {
+  document.getElementById("menu").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+  currentQuestion = 0;
+  score = 0;
+  showQuestion();
+}
+
+function showQuestion() {
+  const question = questions[currentQuestion];
+  document.getElementById("questionNumber").textContent = currentQuestion + 1;
+  document.getElementById("questionTitle").textContent = question.title;
+  document.getElementById("questionText").textContent = question.text;
+  document.getElementById("questionGif").src = question.gif;
+  
+  const answersDiv = document.getElementById("answers");
+  answersDiv.innerHTML = "";
+  question.answers.forEach(answer => {
+    const btn = document.createElement("button");
+    btn.className = "btn";
+    btn.textContent = answer.text;
+    btn.onclick = () => selectAnswer(answer.ethical);
+    answersDiv.appendChild(btn);
+  });
+}
+
+function selectAnswer(isEthical) {
+  if (isEthical) score += POINTS_PER_CORRECT;
+  currentQuestion++;
+  if (currentQuestion < questions.length) {
+    showQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult() {
+  lastScore = score;
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem('highScore', highScore);
+  }
+  localStorage.setItem('lastScore', lastScore);
+  
+  document.getElementById("game").classList.add("hidden");
+  document.getElementById("result").classList.remove("hidden");
+  
+  document.getElementById("resultAvatar").src = PROFILE_IMAGES[currentProfile];
+  
+  const totalPoints = questions.length * POINTS_PER_CORRECT;
+  
+  animateValue("finalScoreValue", 0, score, 1000);
+  document.getElementById("totalPossibleScore").textContent = totalPoints;
+  document.getElementById("highScoreDisplay").textContent = highScore;
+  
+  const percentage = (score / totalPoints) * 100;
+  setTimeout(() => {
+    document.getElementById("scoreProgress").style.width = `${percentage}%`;
+  }, 300);
+  
+  let message = "";
+  if (percentage >= 90) message = "✨ Ética Impecável! Você é um exemplo no ambiente de trabalho.";
+  else if (percentage >= 70) message = "🔎 Excelente! Suas decisões são quase sempre corretas.";
+  else if (percentage >= 50) message = "⚡ Bom trabalho! Algumas escolhas poderiam ser melhores.";
+  else if (percentage >= 30) message = "⚠️ Atenção! Revise seus conceitos sobre ética profissional.";
+  else message = "🚨 Alerta! Suas decisões precisam de uma revisão urgente.";
+  
+  document.getElementById("finalMessage").textContent = message;
+  
+  updateScoreDisplay();
+  
+  localStorage.setItem("score_empatia", highScore);
+}
+
+// Função para animar números
+function animateValue(id, start, end, duration) {
+  const obj = document.getElementById(id);
+  let startTimestamp = null;
+  const step = (timestamp) => {
+    if (!startTimestamp) startTimestamp = timestamp;
+    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+    obj.textContent = Math.floor(progress * (end - start) + start);
+    if (progress < 1) {
+      window.requestAnimationFrame(step);
+    }
+  };
+  window.requestAnimationFrame(step);
+}
+
+// Funções de navegação
+function showInstructions() {
+  document.getElementById("menu").classList.add("hidden");
+  document.getElementById("instructions").classList.remove("hidden");
+}
+
+function backToMenu() {
+  document.getElementById("instructions").classList.add("hidden");
+  document.getElementById("result").classList.add("hidden");
+  document.getElementById("game").classList.add("hidden");
+  document.getElementById("profileSelection").classList.add("hidden");
+  document.getElementById("menu").classList.remove("hidden");
+  updateScoreDisplay();
+}
+
+// Função para atualizar o placar
+function updateScoreDisplay() {
+  document.getElementById('highScoreValue').textContent = highScore;
+  document.getElementById('lastScoreValue').textContent = lastScore;
+}
+
+window.onload = function() {
+  loadProfile();
+};
+
+</script>
+</body>
+</html>

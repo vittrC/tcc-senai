@@ -26,11 +26,11 @@
     }
     .course-card {
       background: rgba(0, 0, 0, 0.85);
-      border: 2px solid #00ff00;
+      border: 2px solid #00ff9c;
       border-radius: 11px;
       padding: 40px 20px;
       text-align: center;
-      box-shadow: 0 0 30px 3px rgba(0, 255, 0, 0.356);
+      box-shadow: 0 0 30px 3px #00ff9d6b;
       position: relative;
       overflow: hidden;
       transition: transform 0.4s ease-in-out;
@@ -42,7 +42,7 @@
       left: -50%;
       width: 200%;
       height: 200%;
-      background: radial-gradient(circle, rgba(0,255,0,0.2), transparent 60%);
+      background: radial-gradient(circle, #00ff9d60, transparent 60%);
       transform: translateX(-100%) rotate(45deg);
       animation: shine 6s infinite linear;
       pointer-events: none;
@@ -61,19 +61,19 @@
       margin-bottom: 0.75rem;
       text-transform: uppercase;
       letter-spacing: 2px;
-      color: #00ff00;
-      text-shadow: 0 0 8px #00ff00, 0 0 20px #00ff00;
+      color: #00ff9c;
+      text-shadow: 0 0 8px #00ff9c, 0 0 20px, #00ff9c;
     }
     .course-desc {
       font-size: 1rem;
       margin-bottom: 1.5rem;
-      color: #00ff00;
+      color: #00ff9c;
       line-height: 1.4;
     }
     .btn {
       background: transparent;
-      border: 2px solid #00ff00;
-      color: #00ff00;
+      border: 2px solid #00ff9c;
+      color: #00ff9c;
       padding: 12px 25px;
       border-radius: 4px;
       cursor: pointer;
@@ -81,20 +81,20 @@
       text-transform: uppercase;
       letter-spacing: 1px;
       transition: all 0.3s ease;
-      box-shadow: 0 0 5px #00ff00;
+      box-shadow: 0 0 5px #00ff9c;
       text-decoration: none;
       display: inline-block;
     }
     .btn:hover {
-      background: #00ff00;
+      background: #00ff9c;
       color: #000;
       transform: scale(1.05);
-      box-shadow: 0 0 15px #00ff00;
+      box-shadow: 0 0 15px #00ff9c;
     }
     .hero {   
       text-align: center;
-      color: #00ff00;
-      text-shadow: 0 0 8px #00ff00, 0 0 20px #00ff00;
+      color: #00ff9c;
+      text-shadow: 0 0 8px #00ff9c, 0 0 20px #00ff9c;
     }
     .hero h1 {
       font-size: 2.5em;
@@ -112,8 +112,8 @@
     }
     .stats-title {
       font-size: 2em;
-      color: #00ff00;
-      text-shadow: 0 0 8px #00ff00;
+      color: #00ff9c;
+      text-shadow: 0 0 8px #00ff9d60;
       margin-bottom: 20px;
     }
     .stats-toggle {
@@ -127,9 +127,9 @@
     footer {
       text-align: center;
       padding: 20px;
-      color: #00ff00;
+      color: #00ff9c;
       font-size: 0.9em;
-      text-shadow: 0 0 5px #00ff00;
+      text-shadow: 0 0 5px #00ff9d9b;
     }
 
 .material-symbols-outlined {
@@ -217,8 +217,8 @@
           scores.emocional,
           scores.comunicacao
         ],
-        backgroundColor: 'rgba(0, 255, 0, 0.4)',
-        borderColor: '#00ff00',
+        backgroundColor: '#00ff9c',
+        borderColor: '#00ff9c',
         borderWidth: 2
       }]
     },
@@ -227,16 +227,16 @@
       scales: {
         y: {
           beginAtZero: true,
-          ticks: { color: '#00ff00' },
-          grid: { color: 'rgba(0,255,0,0.2)' }
+          ticks: { color: '#00ff9c' },
+          grid: { color: '#00ff9c' }
         },
         x: {
-          ticks: { color: '#00ff00' },
-          grid: { color: 'rgba(0,255,0,0.1)' }
+          ticks: { color: '#00ff9c' },
+          grid: { color: '#00ff9c' }
         }
       },
       plugins: {
-        legend: { labels: { color: '#00ff00' } }
+        legend: { labels: { color: '#00ff9c' } }
       }
     }
   });
