@@ -141,193 +141,237 @@ const PROFILE_IMAGES = {
   '6': 'img/img6.png'
 };
 
-// Variáveis do jogo
 let currentQuestion = 0;
 let score = 0;
 let currentProfile = '1';
 let highScore = localStorage.getItem('highScore') || 0;
 let lastScore = localStorage.getItem('lastScore') || 0;
 
-// Perguntas do jogo 
 const questions = [
+  [
   {
-    title: "Acidente da Gelatina",
-    text: "Em um dia comum, um colega denuncia outro por ter colocado seu grampeador em uma gelatina. Qual sua atitude?",
-    gif: "gifs/etica_q1.gif",
-    answers: [
-      { text: "A) Reúne os envolvidos para resolver discretamente.", ethical: true },
-      { text: "B) Ri freneticamente enquanto aponta para o colega.", ethical: false },
-      { text: "C) Espalha a história pelo escritório, dando a ele o apelido de 'guloso'.", ethical: false },
-      { text: "D) Recorre ao RH.", ethical: true }
+    "title": "Acidente da Gelatina",
+    "text": "Em um dia comum, um colega denuncia outro por ter colocado seu grampeador em uma gelatina. Qual sua atitude?",
+    "gif": "gifs/etica_q1.gif",
+    "answers": [
+      { "text": "A) Ri freneticamente enquanto aponta para o colega.", "ethical": false },
+      { "text": "B) Recorre ao RH.", "ethical": true },
+      { "text": "C) Espalha a história pelo escritório, dando a ele o apelido de 'guloso'.", "ethical": false },
+      { "text": "D) Reúne os envolvidos para resolver discretamente.", "ethical": true }
     ]
   },
   {
-    title: "Assédio no Trabalho",
-    text: "Durante uma ida à cozinha, você vê seu colega constrangendo uma de suas colegas. O que você faz?",
-    gif: "gifs/etica_q2.gif",
-    answers: [
-      { text: "A) Denuncia o comportamento para seus superiores.", ethical: true },
-      { text: "B) Não faz nada e finge que nada aconteceu.", ethical: false },
-      { text: "C) Conversa com o colega e diz que aquilo não é legal.", ethical: true }
+    "title": "Assédio no Trabalho",
+    "text": "Durante uma ida à cozinha, você vê seu colega constrangendo uma de suas colegas. O que você faz?",
+    "gif": "gifs/etica_q2.gif",
+    "answers": [
+      { "text": "A) Conversa com o colega e diz que aquilo não é legal.", "ethical": true },
+      { "text": "B) Não faz nada e finge que nada aconteceu.", "ethical": false },
+      { "text": "C) Denuncia o comportamento para seus superiores.", "ethical": true }
     ]
   },
   {
-    title: "Identidade Falsa",
-    text: "Você descobre que seu velho colega usa um nome falso. O que você faz?",
-    gif: "gifs/etica_q3.gif",
-    answers: [
-      { text: "A) Reporta às autoridades.", ethical: true },
-      { text: "B) Alerta seus colegas sobre a falsa identidade.", ethical: false },
-      { text: "C) Confronta-o pessoalmente, adotando postura agressiva.", ethical: false }
+    "title": "Identidade Falsa",
+    "text": "Você descobre que seu velho colega usa um nome falso. O que você faz?",
+    "gif": "gifs/etica_q3.gif",
+    "answers": [
+      { "text": "A) Confronta-o pessoalmente, adotando postura agressiva.", "ethical": false },
+      { "text": "B) Reporta às autoridades.", "ethical": true },
+      { "text": "C) Alerta seus colegas sobre a falsa identidade.", "ethical": false }
     ]
   },
   {
-    title: "Colega no Parque",
-    text: "Seu colega mente sobre estar doente para faltar ao trabalho e você descobre que ele foi ao parque. O que você faz?",
-    gif: "gifs/etica_q4.gif",
-    answers: [
-      { text: "A) dedura ele no grupo da firma com prints e marca o chefe.", ethical: false },
-      { text: "B) vai também ao parque e cobra a entrada em nome da empresa.", ethical: false },
-      { text: "C) faz stories marcando ele e a empresa.", ethical: false },
-      { text: "D) ignora. Ética não é seu forte.", ethical: false },
-      { text: "E) Conversa com ele em particular e sugere que seja honesto da próxima vez.", ethical: true }
+    "title": "Colega no Parque",
+    "text": "Seu colega mente sobre estar doente para faltar ao trabalho e você descobre que ele foi ao parque. O que você faz?",
+    "gif": "gifs/etica_q4.gif",
+    "answers": [
+      { "text": "A) ignora. Ética não é seu forte.", "ethical": false },
+      { "text": "B) dedura ele no grupo da firma com prints e marca o chefe.", "ethical": false },
+      { "text": "C) Conversa com ele em particular e sugere que seja honesto da próxima vez.", "ethical": true },
+      { "text": "D) vai também ao parque e cobra a entrada em nome da empresa.", "ethical": false },
+      { "text": "E) faz stories marcando ele e a empresa.", "ethical": false }
     ]
   },
   {
-  title: "SOS Plantas",
-  text: "Você descobre que o RH comprou plantas novas, mas ninguém rega. As plantas estão morrendo mais rápido que suas esperanças de promoção. Como agir?",
-  gif: "gifs/etica_q5.gif",
-  answers: [
-    { text: "A) Pega um regador e joga água nas plantas dizendo “sobrevivam como eu tento sobreviver aqui”.", ethical: true },
-    { text: "B) Substitui as plantas por bonecos de papel e aguarda admiração geral pela “art installation”.", ethical: false },
-    { text: "C) Envia e-mail para toda a empresa: “SOS Vegetação Corporativa”.", ethical: false },
-    { text: "D) Derruba todas as plantas para que ninguém “sofra com a morte delas” de novo.", ethical: false }
+    "title": "SOS Plantas",
+    "text": "Você descobre que o RH comprou plantas novas, mas ninguém rega. As plantas estão morrendo mais rápido que suas esperanças de promoção. Como agir?",
+    "gif": "gifs/etica_q5.gif",
+    "answers": [
+      { "text": "A) Substitui as plantas por bonecos de papel e aguarda admiração geral pela “art installation”.", "ethical": false },
+      { "text": "B) Derruba todas as plantas para que ninguém “sofra com a morte delas” de novo.", "ethical": false },
+      { "text": "C) Envia e-mail para toda a empresa: “SOS Vegetação Corporativa”.", "ethical": false },
+      { "text": "D) Pega um regador e joga água nas plantas dizendo “sobrevivam como eu tento sobreviver aqui”.", "ethical": true }
+    ]
+  },
+  {
+    "title": "Reunião do Caos",
+    "text": "Durante uma reunião, seu colega ativa um filtro de gato sem perceber e o chefe segue falando como se nada tivesse acontecido. O grupo está se segurando para não rir. O que você faz?",
+    "gif": "gifs/etica_q6.gif",
+    "answers": [
+      { "text": "A) Ria ao vivo, tira print e faz adesivo para o grupo da firma.", "ethical": false },
+      { "text": "B) Fica sério, ajuda seu colega discretamente e evita expor a situação mais do que já está.", "ethical": true },
+      { "text": "C) Apresenta um PowerPoint com gráficos sobre o impacto dos filtros no clima organizacional.", "ethical": false },
+      { "text": "D) Manda mensagem no chat: “miau chefe, qual o próximo passo?”.", "ethical": false }
+    ]
+  },
+  {
+    "title": "Caixa de Sugestões",
+    "text": "A empresa colocou uma caixa de sugestões anônimas. No primeiro dia, aparece um bilhete dizendo: 'socorro, prendo minha alma aqui todo dia'. O RH convoca uma investigação. Qual sua atitude ética?",
+    "gif": "gifs/etica_q7.gif",
+    "answers": [
+      { "text": "A) Cria um canal no YouTube para ler todas as sugestões em voz dramática.", "ethical": false },
+      { "text": "B) Sugere ao RH que leve a sugestão a sério e abra espaço para ouvir os funcionários sem punição.", "ethical": true },
+      { "text": "C) Indica os suspeitos com base em quem mais parece estar à beira de um colapso.", "ethical": false },
+      { "text": "D) Escreve outro bilhete dizendo: “minha alma está na máquina de café, tragam incenso”.", "ethical": false }
+    ]
+  },
+  {
+    "title": "Perfume Tóxico",
+    "text": "Um funcionário novo usa tanto perfume que o andar inteiro parece uma loja de cosméticos. Pessoas começam a espirrar, tossir e fazer reuniões no estacionamento. O que você faz?",
+    "gif": "gifs/etica_q8.gif",
+    "answers": [
+      { "text": "A) Compra um purificador de ar e liga no máximo toda vez que ele passa.", "ethical": false },
+      { "text": "B) Conversa com ele em particular, com cuidado, explicando os efeitos sobre os colegas.", "ethical": true },
+      { "text": "C) Faz uma paródia de propaganda de perfume com ele como personagem principal.", "ethical": false },
+      { "text": "D) Instala cartazes de “proibido fragrâncias nível apocalipse”.", "ethical": false }
+    ]
+  },
+  {
+    "title": "Sabotagem da Geladeira",
+    "text": "Alguém colocou um peixe cru na geladeira da empresa como 'vingança' por furto de marmita. O ambiente agora tem cheiro de porto velho. Qual a atitude ética?",
+    "gif": "gifs/etica_q9.gif",
+    "answers": [
+      { "text": "A) Coloca ventilador apontado pra dentro da geladeira pra ver se espalha o castigo.", "ethical": false },
+      { "text": "B) Informa o RH sobre o ocorrido e propõe câmeras ou identificação de alimentos como solução.", "ethical": true },
+      { "text": "C) Escreve em todas as marmitas: 'tocou, apodrece'.", "ethical": false },
+      { "text": "D) Organiza um 'júri da geladeira' para descobrir o culpado.", "ethical": false }
+    ]
+  },
+  {
+    "title": "Elevador da Verdade",
+    "text": "Durante uma pane, você e seu chefe ficam presos no elevador por 2 horas. Ele começa a desabafar sobre decisões erradas e pede sua opinião sincera. O que você faz?",
+    "gif": "gifs/etica_q10.gif",
+    "answers": [
+      { "text": "A) Diz: “Fique tranquilo, se der tudo errado aqui dentro, a culpa será da manutenção”.", "ethical": false },
+      { "text": "B) Oferece uma resposta honesta, mas com empatia, mostrando onde as decisões podem melhorar.", "ethical": true },
+      { "text": "C) Finge desmaiar para não participar da conversa.", "ethical": false },
+      { "text": "D) Aproveita e apresenta um pitch de startup que “melhora chefes em tempo real”.", "ethical": false }
+    ]
+  },
+  {
+    "title": "Treinamento Humilhante",
+    "text": "Você descobre que um curso obrigatório da empresa tem slides dos anos 90 e gifs de castores ‘ensinando’ ética. Um novo funcionário fica visivelmente constrangido. O que você faz?",
+    "gif": "gifs/etica_q11.gif",
+    "answers": [
+      { "text": "A) Recria os slides com estética de TikTok e envia para a diretoria.", "ethical": false },
+      { "text": "B) Dá apoio ao novo colega, depois comunica ao setor responsável sugerindo atualização no conteúdo.", "ethical": true },
+      { "text": "C) Grita durante a aula: “O castor está certo, obedeçam o roedor!”.", "ethical": false },
+      { "text": "D) Cria um grupo paralelo chamado 'Sobreviventes do Castor Ético'.", "ethical": false }
+    ]
+  },
+  {
+    "title": "Ambiente Silencioso Demais",
+    "text": "A empresa implementa política de silêncio absoluto para ‘aumentar foco’. Agora todos se comunicam por post-its. Um colega começa a desenvolver ansiedade com o ambiente. O que você faz?",
+    "gif": "gifs/etica_q12.gif",
+    "answers": [
+      { "text": "A) Sugere ajustes na política, incluindo pausas para conversa e mais canais de expressão saudáveis.", "ethical": true },
+      { "text": "B) Começa a se comunicar apenas por mímica exagerada.", "ethical": false },
+      { "text": "C) Cola uma JBL no teto com som de floresta para “quebrar o vazio”.", "ethical": false },
+      { "text": "D) Escreve os bilhetes em caps lock e com emojis para simular gritos.", "ethical": false }
+    ]
+  },
+  {
+    "title": "Hack do Horário",
+    "text": "Um funcionário criou um sistema que registra ponto automaticamente mesmo quando ele está dormindo. Você descobre isso sem querer. O que faz?",
+    "gif": "gifs/etica_q13.gif",
+    "answers": [
+      { "text": "A) Dá play em vídeos do YouTube com ronco de fundo e simula uma denúncia anônima.", "ethical": false },
+      { "text": "B) Relata a fraude discretamente ao setor responsável, preservando a seriedade do processo.", "ethical": true },
+      { "text": "C) Oferece melhorar o código dele em troca de parte dos lucros.", "ethical": false },
+      { "text": "D) Tenta vender o código como um serviço para startups que ‘valorizam liberdade’.", "ethical": false }
+    ]
+  },
+  {
+    "title": "PowerPoint Comprometedor",
+    "text": "Na apresentação da empresa, alguém acidentalmente abre um slide com print do grupo secreto dos colegas, cheio de apelidos para o chefe. O que fazer?",
+    "gif": "gifs/etica_q14.gif",
+    "answers": [
+      { "text": "A) Encaminha o erro ao responsável e sugere uma conversa madura com os envolvidos.", "ethical": true },
+      { "text": "B) Aplaude e diz: “finalmente a transparência que a gente queria”.", "ethical": false },
+      { "text": "C) Faz o print virar papel de parede dos computadores da empresa.", "ethical": false },
+      { "text": "D) Cria nova versão do grupo com nomes de legumes e migra todos pra lá.", "ethical": false }
+    ]
+  },
+  {
+    "title": "O Caso da Omelete",
+    "text": "Em toda plena segunda-feira, a empresa oferece omelete de almoço para os funcionários. Os funcionários suspeitam de que não se trata de um omelete mas sim de uma massa preparada sabor omelete. Qual sua atitude?",
+    "gif": "gifs/etica_q15.gif",
+    "answers": [
+      { "text": "A) Faz uma petição pedindo para trocar por “Omeletes de verdade”.", "ethical": false },
+      { "text": "B) Conversa com o setor responsável pela alimentação e sugere com respeito mais transparência sobre os ingredientes dos pratos.", "ethical": true },
+      { "text": "C) Sequestra uma galinha e corre pelado pela a cozinha enquanto grita “NÓS QUEREMOS OVOS DE VERDADE” (tudo isso enquanto segura a galinha pelas pernas).", "ethical": false },
+      { "text": "D) Simula um ataque de dejetos putridos usando pudim de chocolate, fazendo com que retirem o prato do cardapio.", "ethical": false }
+    ]
+  },
+  {
+    "title": "A Fritadeira do RH",
+    "text": "O RH decide instalar uma fritadeira de pastel na sala de convivência para melhorar o clima organizacional. Porém, o cheiro invade todo o escritório e ninguém mais consegue se concentrar. O que fazer?",
+    "gif": "gifs/etica_q16.gif",
+    "answers": [
+      { "text": "A) Coloca alarmes de incêndio falsos perto da fritadeira até ela ser removida.", "ethical": false },
+      { "text": "B) Conversa com o RH e propõe realocar a fritadeira para uma área ventilada ou limitar os horários de uso.", "ethical": true },
+      { "text": "C) Começa a vender refrigerante na sua mesa e transforma o andar num food court.", "ethical": false },
+      { "text": "D) Cria um abaixo-assinado exigindo frituras temáticas por dia da semana.", "ethical": false }
+    ]
+  },
+  {
+  "title": "O Hacker da Impressora",
+  "text": "Um colega descobre como imprimir sem que seu nome apareça no sistema e começa a usar isso para imprimir memes e cartas de amor não solicitadas. O que você faz?",
+  "gif": "gifs/etica_q17.gif",
+  "answers": [
+    { "text": "A) Conversa com ele sobre os riscos e sugere parar antes que alguém se prejudique.", "ethical": true },
+    { "text": "B) Usa o sistema pra imprimir uma denúncia anônima... sobre o próprio sistema.", "ethical": false },
+    { "text": "C) Responde às cartas de amor com críticas gramaticais em vermelho.", "ethical": false },
+    { "text": "D) Instala rastreamento na impressora e vende as provas para o RH.", "ethical": false }
   ]
 },
 {
-  title: "Reunião do Caos",
-  text: "Durante uma reunião, seu colega ativa um filtro de gato sem perceber e o chefe segue falando como se nada tivesse acontecido. O grupo está se segurando para não rir. O que você faz?",
-  gif: "gifs/etica_q6.gif",
-  answers: [
-    { text: "A) Fica sério, ajuda seu colega discretamente e evita expor a situação mais do que já está.", ethical: true },
-    { text: "B) Ria ao vivo, tira print e faz adesivo para o grupo da firma.", ethical: false },
-    { text: "C) Manda mensagem no chat: “miau chefe, qual o próximo passo?”.", ethical: false },
-    { text: "D) Apresenta um PowerPoint com gráficos sobre o impacto dos filtros no clima organizacional.", ethical: false }
+  "title": "A Vassoura Voadora",
+  "text": "Durante a faxina coletiva, um colega se recusa a participar alegando que 'não foi contratado para limpar chão'. Isso gera desconforto no grupo. Qual atitude você toma?",
+  "gif": "gifs/etica_q18.gif",
+  "answers": [
+    { "text": "A) Conversa com ele sobre o espírito de equipe e sugere diálogo com a liderança.", "ethical": true },
+    { "text": "B) Escreve no chão com sujeira: 'aqui jaz a colaboração'.", "ethical": false },
+    { "text": "C) Contrata um mágico para fazê-lo “desaparecer” nas próximas limpezas.", "ethical": false },
+    { "text": "D) Joga sujeira só na mesa dele como “área exclusiva de aprendizado”.", "ethical": false }
   ]
 },
 {
-  title: "Caixa de Sugestões",
-  text: "A empresa colocou uma caixa de sugestões anônimas. No primeiro dia, aparece um bilhete dizendo: 'socorro, prendo minha alma aqui todo dia'. O RH convoca uma investigação. Qual sua atitude ética?",
-  gif: "gifs/etica_q7.gif",
-  answers: [
-    { text: "A) Sugere ao RH que leve a sugestão a sério e abra espaço para ouvir os funcionários sem punição.", ethical: true },
-    { text: "B) Escreve outro bilhete dizendo: “minha alma está na máquina de café, tragam incenso”.", ethical: false },
-    { text: "C) Indica os suspeitos com base em quem mais parece estar à beira de um colapso.", ethical: false },
-    { text: "D) Cria um canal no YouTube para ler todas as sugestões em voz dramática.", ethical: false }
+  "title": "A Guerra dos Fones",
+  "text": "Dois colegas entram em conflito por causa de volume alto nos fones. Um ouve rock, o outro podcast de crimes reais narrados pelo palhaço caçarola. O clima fica tenso. Como agir?",
+  "gif": "gifs/etica_q19.gif",
+  "answers": [
+    { "text": "A) Media a conversa entre eles e propõe regras de uso de fones e limites de volume.", "ethical": true },
+    { "text": "B) Cria uma playlist com gritos de terror e bota no loop pra ver quem cede primeiro.", "ethical": false },
+    { "text": "C) Instaura o 'dia do silêncio total' como punição coletiva.", "ethical": false },
+    { "text": "D) Transforma o conflito em novela e grava episódios no banheiro.", "ethical": false }
   ]
 },
 {
-  title: "Perfume Tóxico",
-  text: "Um funcionário novo usa tanto perfume que o andar inteiro parece uma loja de cosméticos. Pessoas começam a espirrar, tossir e fazer reuniões no estacionamento. O que você faz?",
-  gif: "gifs/etica_q8.gif",
-  answers: [
-    { text: "A) Conversa com ele em particular, com cuidado, explicando os efeitos sobre os colegas.", ethical: true },
-    { text: "B) Compra um purificador de ar e liga no máximo toda vez que ele passa.", ethical: false },
-    { text: "C) Faz uma paródia de propaganda de perfume com ele como personagem principal.", ethical: false },
-    { text: "D) Instala cartazes de “proibido fragrâncias nível apocalipse”.", ethical: false }
-  ]
-},
-{
-  title: "Sabotagem da Geladeira",
-  text: "Alguém colocou um peixe cru na geladeira da empresa como 'vingança' por furto de marmita. O ambiente agora tem cheiro de porto velho. Qual a atitude ética?",
-  gif: "gifs/etica_q9.gif",
-  answers: [
-    { text: "A) Informa o RH sobre o ocorrido e propõe câmeras ou identificação de alimentos como solução.", ethical: true },
-    { text: "B) Escreve em todas as marmitas: 'tocou, apodrece'.", ethical: false },
-    { text: "C) Organiza um 'júri da geladeira' para descobrir o culpado.", ethical: false },
-    { text: "D) Coloca ventilador apontado pra dentro da geladeira pra ver se espalha o castigo.", ethical: false }
-  ]
-},
-{
-  title: "Elevador da Verdade",
-  text: "Durante uma pane, você e seu chefe ficam presos no elevador por 2 horas. Ele começa a desabafar sobre decisões erradas e pede sua opinião sincera. O que você faz?",
-  gif: "gifs/etica_q10.gif",
-  answers: [
-    { text: "A) Oferece uma resposta honesta, mas com empatia, mostrando onde as decisões podem melhorar.", ethical: true },
-    { text: "B) Diz: “Fique tranquilo, se der tudo errado aqui dentro, a culpa será da manutenção”.", ethical: false },
-    { text: "C) Finge desmaiar para não participar da conversa.", ethical: false },
-    { text: "D) Aproveita e apresenta um pitch de startup que “melhora chefes em tempo real”.", ethical: false }
-  ]
-},
-{
-  title: "Treinamento Humilhante",
-  text: "Você descobre que um curso obrigatório da empresa tem slides dos anos 90 e gifs de castores ‘ensinando’ ética. Um novo funcionário fica visivelmente constrangido. O que você faz?",
-  gif: "gifs/etica_q11.gif",
-  answers: [
-    { text: "A) Dá apoio ao novo colega, depois comunica ao setor responsável sugerindo atualização no conteúdo.", ethical: true },
-    { text: "B) Cria um grupo paralelo chamado 'Sobreviventes do Castor Ético'.", ethical: false },
-    { text: "C) Grita durante a aula: “O castor está certo, obedeçam o roedor!”.", ethical: false },
-    { text: "D) Recria os slides com estética de TikTok e envia para a diretoria.", ethical: false }
-  ]
-},
-{
-  title: "Ambiente Silencioso Demais",
-  text: "A empresa implementa política de silêncio absoluto para ‘aumentar foco’. Agora todos se comunicam por post-its. Um colega começa a desenvolver ansiedade com o ambiente. O que você faz?",
-  gif: "gifs/etica_q12.gif",
-  answers: [
-    { text: "A) Sugere ajustes na política, incluindo pausas para conversa e mais canais de expressão saudáveis.", ethical: true },
-    { text: "B) Escreve os bilhetes em caps lock e com emojis para simular gritos.", ethical: false },
-    { text: "C) Cola uma JBL no teto com som de floresta para “quebrar o vazio”.", ethical: false },
-    { text: "D) Começa a se comunicar apenas por mímica exagerada.", ethical: false }
-  ]
-},
-{
-  title: "Hack do Horário",
-  text: "Um funcionário criou um sistema que registra ponto automaticamente mesmo quando ele está dormindo. Você descobre isso sem querer. O que faz?",
-  gif: "gifs/etica_q13.gif",
-  answers: [
-    { text: "A) Relata a fraude discretamente ao setor responsável, preservando a seriedade do processo.", ethical: true },
-    { text: "B) Oferece melhorar o código dele em troca de parte dos lucros.", ethical: false },
-    { text: "C) Tenta vender o código como um serviço para startups que ‘valorizam liberdade’.", ethical: false },
-    { text: "D) Dá play em vídeos do YouTube com ronco de fundo e simula uma denúncia anônima.", ethical: false }
-  ]
-},
-{
-  title: "PowerPoint Comprometedor",
-  text: "Na apresentação da empresa, alguém acidentalmente abre um slide com print do grupo secreto dos colegas, cheio de apelidos para o chefe. O que fazer?",
-  gif: "gifs/etica_q14.gif",
-  answers: [
-    { text: "A) Encaminha o erro ao responsável e sugere uma conversa madura com os envolvidos.", ethical: true },
-    { text: "B) Aplaude e diz: “finalmente a transparência que a gente queria”.", ethical: false },
-    { text: "C) Cria nova versão do grupo com nomes de legumes e migra todos pra lá.", ethical: false },
-    { text: "D) Faz o print virar papel de parede dos computadores da empresa.", ethical: false }
-  ]
-},
-{
-  title: "O Caso da Omelete",
-  text: "Em toda plena segunda-feira, a empresa oferece omelete de almoço para os funcionários. Os funcionários suspeitam de que não se trata de um omelete mas sim de uma massa preparada sabor omelete. Qual sua atitude?",
-  gif: "gifs/etica_q15.gif",
-  answers: [
-    { text: "A) Conversa com o setor responsável pela alimentação e sugere com respeito mais transparência sobre os ingredientes dos pratos.", ethical: true },
-    { text: "B) Faz uma petição pedindo para trocar por “Omeletes de verdade”.", ethical: false },
-    { text: "C) Simula um ataque de dejetos putridos usando pudim de chocolate, fazendo com que retirem o prato do cardapio.", ethical: false },
-    { text: "D) Sequestra uma galinha e corre pelado pela a cozinha enquanto grita “NÓS QUEREMOS OVOS DE VERDADE” (tudo isso enquanto segura a galinha pelas pernas).", ethical: false }
-  ]
-},
-{
-  title: "A Fritadeira do RH",
-  text: "O RH decide instalar uma fritadeira de pastel na sala de convivência para melhorar o clima organizacional. Porém, o cheiro invade todo o escritório e ninguém mais consegue se concentrar. O que fazer?",
-  gif: "gifs/etica_q16.gif",
-  answers: [
-    { text: "A) Conversa com o RH e propõe realocar a fritadeira para uma área ventilada ou limitar os horários de uso.", ethical: true },
-    { text: "B) Começa a vender refrigerante na sua mesa e transforma o andar num food court.", ethical: false },
-    { text: "C) Coloca alarmes de incêndio falsos perto da fritadeira até ela ser removida.", ethical: false },
-    { text: "D) Cria um abaixo-assinado exigindo frituras temáticas por dia da semana.", ethical: false }
+  "title": "O Café dos Mortos",
+  "text": "Algo estranho acontece no escritório, o café do chefe passou a ter um gosto estranho logo depois do sumiço da urna funerária da tia vó de um dos funcionários. O que você faz?",
+  "gif": "gifs/etica_q20.gif",
+  "answers": [
+    { "text": "A) Alerta o chefe sobre o café sabotado.", "ethical": true },
+    { "text": "B) Distribui o café para o resto do escritório", "ethical": false },
+    { "text": "C) Começa a vender doses do café no copinho por R$2,50.", "ethical": false },
+    { "text": "D) Entrega o café para o funcionário dono da urna e o desmascara dizendo 'Gosto familiar né...'", "ethical": false }
   ]
 }
 ]
 
-// Funções do sistema de perfil
+]
+
 function loadProfile() {
   const savedProfile = localStorage.getItem('profile');
   if (savedProfile) currentProfile = savedProfile;
