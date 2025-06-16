@@ -312,7 +312,6 @@
     } else {
       userNameEl.textContent = user;
 
-      // Carrega respostas anteriores
       db.collection("usuarios").doc(user).collection("modulos").doc("modulo1").get()
         .then(doc => {
           if (doc.exists) {
@@ -329,7 +328,6 @@
         localStorage.removeItem('usuario');
         window.location.href = "modulo2.html"      });
 
-      // Envio do formulário
       form.addEventListener('submit', function(e) {
         e.preventDefault();
         const respostas = {};
@@ -374,7 +372,6 @@
       form.addEventListener("change", verificarConclusao);
     }
 
-    // Slider
     const slides = document.getElementById("slides");
     const totalSlides = slides.querySelectorAll("img").length;
     let currentIndex = 0;

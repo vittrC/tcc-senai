@@ -26,96 +26,97 @@
 
   
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyAVZ-dvyJuGFF4fEHGjS-TrhzBmBslVwNs",
-      authDomain: "curso-3-inteligencia-emocional.firebaseapp.com",
-      projectId: "curso-3-inteligencia-emocional",
-      storageBucket: "curso-3-inteligencia-emocional.appspot.com",
-      messagingSenderId: "105031303963",
-      appId: "1:105031303963:web:0ecdcddc91fbb0af69c9be"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyAVZ-dvyJuGFF4fEHGjS-TrhzBmBslVwNs",
+    authDomain: "curso-3-inteligencia-emocional.firebaseapp.com",
+    projectId: "curso-3-inteligencia-emocional",
+    storageBucket: "curso-3-inteligencia-emocional.appspot.com",
+    messagingSenderId: "105031303963",
+    appId: "1:105031303963:web:0ecdcddc91fbb0af69c9be"
+  };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-    async function logar() {
-      const nomeInput = document.getElementById("nome");
-      const senhaInput = document.getElementById("senha");
-      const msg = document.getElementById("msg");
-      const btnLogin = document.getElementById("btn-login");
+  async function logar() {
+    const nomeInput = document.getElementById("nome");
+    const senhaInput = document.getElementById("senha");
+    const msg = document.getElementById("msg");
+    const btnLogin = document.getElementById("btn-login");
 
-      msg.innerText = "";
-      msg.style.color = "red";
-      btnLogin.disabled = true;
-      btnLogin.textContent = "Carregando...";
+    msg.innerText = "";
+    msg.style.color = "red";
+    btnLogin.disabled = true;
+    btnLogin.textContent = "Carregando...";
 
-      if (!nomeInput.value.trim()) {
-        msg.innerText = "Por favor, digite seu nome de usuário.";
-        btnLogin.disabled = false;
-        btnLogin.textContent = "Entrar";
-        return;
-      }
-
-      if (!senhaInput.value) {
-        msg.innerText = "Por favor, digite sua senha.";
-        btnLogin.disabled = false;
-        btnLogin.textContent = "Entrar";
-        return;
-      }
-
-      const nomeUsuario = nomeInput.value.trim();
-      const senha = senhaInput.value;
-
-      try {
-        const usuariosRef = db.collection("usuarios");
-        const snapshot = await usuariosRef
-          .where("nome", "==", nomeUsuario)
-          .limit(1)
-          .get();
-
-        if (snapshot.empty) {
-          msg.innerText = "Usuário não encontrado.";
-          btnLogin.disabled = false;
-          btnLogin.textContent = "Entrar";
-          return;
-        }
-
-        const usuarioDoc = snapshot.docs[0];
-        const usuarioData = usuarioDoc.data();
-
-        const senhaCorreta = usuarioData.senha || usuarioData.Senha;
-        
-        if (senhaCorreta === senha) {
-          localStorage.setItem("usuario", usuarioData.nome || nomeUsuario);
-          msg.style.color = "lightgreen";
-          msg.innerText = "Login bem-sucedido! Redirecionando...";
-          
-          setTimeout(() => {
-            window.location.href = "central.html"; 
-          }, 1000);
-        } else {
-          msg.innerText = "Senha incorreta.";
-          btnLogin.disabled = false;
-          btnLogin.textContent = "Entrar";
-        }
-      } catch (error) {
-        console.error("Erro no Firestore:", error);
-        msg.innerText = "Erro ao acessar o banco de dados. Tente novamente.";
-        btnLogin.disabled = false;
-        btnLogin.textContent = "Entrar";
-      }
+    if (!nomeInput.value.trim() || !senhaInput.value) {
+      msg.innerText = "Preencha todos os campos.";
+      btnLogin.disabled = false;
+      btnLogin.textContent = "Entrar";
+      return;
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const btnLogin = document.getElementById('btn-login');
-      const senhaInput = document.getElementById('senha');
-      
-      btnLogin.addEventListener('click', logar);
-      
-      senhaInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') logar();
-      });
+    const nomeUsuario = nomeInput.value.trim();
+    const senha = senhaInput.value;
+
+    try {
+      const usuariosRef = db.collection("usuarios");
+      const snapshot = await usuariosRef
+        .where("nome", "==", nomeUsuario)
+        .limit(1)
+        .get();
+
+      if (snapshot.empty) {
+        msg.innerText = "Usuário não encontrado.";
+        btnLogin.disabled = false;
+        btnLogin.textContent = "Entrar";
+        return;
+      }
+
+      const usuarioDoc = snapshot.docs[0];
+      const usuarioData = usuarioDoc.data();
+
+      const senhaCorreta = usuarioData.senha || usuarioData.Senha;
+      const tipoUsuario = usuarioData.tipo || "usuario"; 
+
+      if (senhaCorreta === senha) {
+        localStorage.setItem("usuario", usuarioData.nome || nomeUsuario);
+        localStorage.setItem("tipo", tipoUsuario);
+
+        msg.style.color = "lightgreen";
+        msg.innerText = "Login bem-sucedido! Redirecionando...";
+
+        setTimeout(() => {
+          if (tipoUsuario === "adm") {
+            window.location.href = "centralADM.html"; // Página de administrador
+          } else {
+            window.location.href = "central.html";    // Página de usuários comuns
+          }
+        }, 1000);
+      } else {
+        msg.innerText = "Senha incorreta.";
+        btnLogin.disabled = false;
+        btnLogin.textContent = "Entrar";
+      }
+    } catch (error) {
+      console.error("Erro no Firestore:", error);
+      msg.innerText = "Erro ao acessar o banco de dados.";
+      btnLogin.disabled = false;
+      btnLogin.textContent = "Entrar";
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const btnLogin = document.getElementById('btn-login');
+    const senhaInput = document.getElementById('senha');
+    
+    btnLogin.addEventListener('click', logar);
+    
+    senhaInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') logar();
     });
-  </script>
+  });
+</script>
+
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Teste de Ética no Trabalho</title>
+  <title>Curso 1 - Teste de Ética no Trabalho</title>
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
    <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet" />
@@ -147,7 +147,6 @@ const PROFILE_IMAGES = {
   '6': 'img/img6.png'
 };
 
-// Variáveis do jogo
 let currentQuestion = 0;
 let score = 0;
 let currentProfile = '1';
@@ -411,7 +410,7 @@ const questions = [
 
 ];
 
-// Funções do sistema de perfil
+// Sistema de perfil
 function loadProfile() {
   const savedProfile = localStorage.getItem('profile');
   if (savedProfile) currentProfile = savedProfile;
@@ -436,7 +435,7 @@ function selectProfile(profileId) {
   hideProfileSelection();
 }
 
-// Funções do jogo principal
+// Jogo principal
 function startGame() {
   document.getElementById("menu").classList.add("hidden");
   document.getElementById("game").classList.remove("hidden");
@@ -517,7 +516,6 @@ function showResult() {
   localStorage.setItem("score_empatia", highScore);
 }
 
-// Função para animar números
 function animateValue(id, start, end, duration) {
   const obj = document.getElementById(id);
   let startTimestamp = null;
@@ -531,8 +529,6 @@ function animateValue(id, start, end, duration) {
   };
   window.requestAnimationFrame(step);
 }
-
-// Funções de navegação
 function showInstructions() {
   document.getElementById("menu").classList.add("hidden");
   document.getElementById("instructions").classList.remove("hidden");
@@ -547,7 +543,6 @@ function backToMenu() {
   updateScoreDisplay();
 }
 
-// Função para atualizar o placar
 function updateScoreDisplay() {
   document.getElementById('highScoreValue').textContent = highScore;
   document.getElementById('lastScoreValue').textContent = lastScore;
