@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <style>
@@ -161,16 +160,17 @@
       padding: 10px;
       border: 2px solid #00ff9c;
       border-radius: 10px;
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr); 
       gap: 10px;
       z-index: 99;
-    }
+}
     #selecao-avatar.oculto {
       display: none;
     }
     #selecao-avatar img.avatar {
-      width: 50px;
-      height: 50px;
+      width: 70px;
+      height: 70px;
       border-radius: 50%;
       cursor: pointer;
       border: 2px solid transparent;
@@ -195,6 +195,13 @@
       <img src="img/img4.png" class="avatar" onclick="selecionarAvatar('img/img4.png')">
       <img src="img/img5.png" class="avatar" onclick="selecionarAvatar('img/img5.png')">
       <img src="img/img6.png" class="avatar" onclick="selecionarAvatar('img/img6.png')">
+      <img src="img/img7.png" class="avatar" onclick="selecionarAvatar('img/img7.png')">
+      <img src="img/img8.png" class="avatar" onclick="selecionarAvatar('img/img8.png')">
+      <img src="img/img9.png" class="avatar" onclick="selecionarAvatar('img/img9.png')">
+      <img src="img/img10.png" class="avatar" onclick="selecionarAvatar('img/img10.png')">
+      <img src="img/img11.png" class="avatar" onclick="selecionarAvatar('img/img11.png')">
+      <img src="img/img12.png" class="avatar" onclick="selecionarAvatar('img/img12.png')">    
+
     </div>
 
     <section class="hero">
@@ -205,7 +212,7 @@
       <div class="course-card">
         <span class="material-symbols-outlined">volunteer_activism</span>
         <h3 class="course-title">Empatia</h3>
-        <p class="course-desc">Aprenda a se colocar no lugar do outro e fortalecer conexões no ambiente de Trabalho.</p>
+        <p style="margin-bottom: 56px;"    class="course-desc">Aprenda a se colocar no lugar do outro e fortalecer conexões no ambiente de Trabalho.</p>
         <a href="ética.html" class="btn">Acessar Curso</a>
       </div>
       <div class="course-card">
@@ -237,10 +244,17 @@
 
     <footer>
       &copy; Emerald Vault 2025 - Financiada por Boris Borges Bolesvav
+      <br>
+      <button id="logout-btn" class="btn" style="margin-top:20px;">Logout</button>
     </footer>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script>
+    if (!localStorage.getItem("usuario")) {
+    window.location.href = "login.html";
+  }
+
     const scores = {
       empatia: parseInt(localStorage.getItem("score_empatia") || 0),
       equipe: parseInt(localStorage.getItem("score_equipe") || 0),
@@ -296,18 +310,33 @@
     const db = firebase.firestore();
     const nomeUsuario = localStorage.getItem("usuario");
 
-    async function carregarAvatar() {
-      try {
-        const usuariosRef = db.collection("usuarios");
-        const snapshot = await usuariosRef.where("nome", "==", nomeUsuario).limit(1).get();
-        if (!snapshot.empty) {
-          const avatar = snapshot.docs[0].data().avatar || 'img/img1.png';
-          document.getElementById("avatar-img").src = avatar;
-        }
-      } catch (e) {
-        console.error("Erro ao carregar avatar:", e);
+    document.getElementById('logout-btn').onclick = function() {
+      if (firebase.auth) {
+        firebase.auth().signOut().then(function() {
+          localStorage.clear();
+          window.location.href = "login.html";
+        }).catch(function(error) {
+          alert("Erro ao fazer logout: " + error.message);
+        });
+      } else {
+        localStorage.clear();
+        window.location.href = "login.html";
       }
+    };
+
+    async function carregarAvatar() {
+  try {
+    const usuariosRef = db.collection("usuarios");
+    const snapshot = await usuariosRef.where("nome", "==", nomeUsuario).limit(1).get();
+    if (!snapshot.empty) {
+      const avatar = snapshot.docs[0].data().avatar || 'img/img1.png';
+      document.getElementById("avatar-img").src = avatar;
+      localStorage.setItem('avatar', avatar);
     }
+  } catch (e) {
+    console.error("Erro ao carregar avatar:", e);
+  }
+}
     carregarAvatar();
 
     function mostrarOpcoesAvatar() {
@@ -315,19 +344,22 @@
     }
 
     async function selecionarAvatar(src) {
-      try {
-        const usuariosRef = db.collection("usuarios");
-        const snapshot = await usuariosRef.where("nome", "==", nomeUsuario).limit(1).get();
-        if (!snapshot.empty) {
-          await snapshot.docs[0].ref.update({ avatar: src });
-          document.getElementById("avatar-img").src = src;
-          document.getElementById("selecao-avatar").classList.add("oculto");
-        }
-      } catch (e) {
-        console.error("Erro ao salvar avatar:", e);
-        alert("Erro ao atualizar avatar.");
-      }
+  try {
+    const usuariosRef = db.collection("usuarios");
+    const snapshot = await usuariosRef.where("nome", "==", nomeUsuario).limit(1).get();
+    if (!snapshot.empty) {
+      await snapshot.docs[0].ref.update({ avatar: src });
+      document.getElementById("avatar-img").src = src;
+      document.getElementById("selecao-avatar").classList.add("oculto");
+      
+      // ADIÇÃO: Salvar no localStorage também
+      localStorage.setItem('avatar', src);
     }
+  } catch (e) {
+    console.error("Erro ao salvar avatar:", e);
+    alert("Erro ao atualizar avatar.");
+  }
+}
   </script>
 </body>
 </html>

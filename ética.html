@@ -6,24 +6,24 @@
   <title>Curso 1 - Teste de Ética no Trabalho</title>
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-   <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+
 </head>
 <body>
-
-<div id="profileContainer" onclick="backToMenu()">
-  <img id="profileImage" src="img/img1.png" alt="Foto de Perfil">
-</div>
 
 <div class="container" id="menu">
   <h1>Teste de Ética no Ambiente de Trabalho</h1>
   <p>Bem-vindo ao simulador de dilemas éticos, aqui será testada toda sua integridade como ser. Boa sorte!</p>
   <button class="btn" onclick="startGame()">Iniciar o Jogo</button>
   <button class="btn" onclick="showInstructions()">Instruções</button>
-  <button class="btn" onclick="showProfileSelection()">Alterar Avatar</button>
   
   <div class="simple-score">
-    <p>🏆 Recorde: <span id="highScoreValue">0</span></p>
+    <p>
+    <span class="material-symbols-outlined" style="font-size: 27px; color: #00ff9c; position: relative; top: 6px;">emoji_events</span>
+    Recorde: <span id="highScoreValue">0</span>
+    </p>
     <p>Última pontuação: <span id="lastScoreValue">0</span></p>
     <button id="resetScoreBtn" class="reset-btn" onclick="showResetConfirmation()">Resetar Pontuação</button>
     <div id="resetConfirm" class="reset-confirm hidden">
@@ -37,19 +37,6 @@
     <i class="fas fa-right-from-bracket"></i></a>
   </div>
   
-</div>
-
-<div class="container hidden" id="profileSelection">
-  <h2>Escolha seu Avatar</h2>
-  <div class="profile-grid">
-    <img src="img/img1.png" class="profile-option" onclick="selectProfile('1')">
-    <img src="img/img2.png" class="profile-option" onclick="selectProfile('2')">
-    <img src="img/img3.png" class="profile-option" onclick="selectProfile('3')">
-    <img src="img/img4.png" class="profile-option" onclick="selectProfile('4')">
-    <img src="img/img5.png" class="profile-option" onclick="selectProfile('5')">
-    <img src="img/img6.png" class="profile-option" onclick="selectProfile('6')">
-  </div>
-  <button class="btn" onclick="hideProfileSelection()">Voltar</button>
 </div>
 
 <div class="container hidden" id="instructions">
@@ -69,8 +56,10 @@
 </div>
 
 <div class="container hidden" id="result">
-  <h2>🏁 Resultado Final</h2>
-  
+<h2>
+    <span class="material-symbols-outlined" style="font-size: 37px; color: #00ff9c; position: relative; top: 8px;">sports_score</span>
+    Resultado Final:
+</h2>  
   <div style="display: flex; align-items: center; justify-content: center; gap: 30px; margin: 20px 0;">
     <div style="text-align: center;">
       <img id="resultAvatar" src="img/img1.png" style="width: 120px; height: 120px; border-radius: 50%; border: 3px solid #00ff00; box-shadow: 0 0 20px #00ff00;">
@@ -98,6 +87,8 @@
 </div>
 
 <script>
+
+console.log('Avatar no localStorage:', localStorage.getItem('avatar'));
 
 function showResetConfirmation() {
   document.getElementById("resetConfirm").classList.remove("hidden");
@@ -135,23 +126,8 @@ function resetHighScore() {
   }, 1500);
 }
 
-
 // Constantes
 const POINTS_PER_CORRECT = 150;
-const PROFILE_IMAGES = {
-  '1': 'img/img1.png',
-  '2': 'img/img2.png',
-  '3': 'img/img3.png',
-  '4': 'img/img4.png',
-  '5': 'img/img5.png',
-  '6': 'img/img6.png'
-};
-
-let currentQuestion = 0;
-let score = 0;
-let currentProfile = '1';
-let highScore = localStorage.getItem('highScore') || 0;
-let lastScore = localStorage.getItem('lastScore') || 0;
 
 // Perguntas do jogo 
 const questions = [
@@ -410,30 +386,10 @@ const questions = [
 
 ];
 
-// Sistema de perfil
-function loadProfile() {
-  const savedProfile = localStorage.getItem('profile');
-  if (savedProfile) currentProfile = savedProfile;
-  document.getElementById('profileImage').src = PROFILE_IMAGES[currentProfile];
-  updateScoreDisplay();
-}
-
-function showProfileSelection() {
-  document.getElementById("menu").classList.add("hidden");
-  document.getElementById("profileSelection").classList.remove("hidden");
-}
-
-function hideProfileSelection() {
-  document.getElementById("profileSelection").classList.add("hidden");
-  document.getElementById("menu").classList.remove("hidden");
-}
-
-function selectProfile(profileId) {
-  currentProfile = profileId;
-  localStorage.setItem('profile', profileId);
-  document.getElementById('profileImage').src = PROFILE_IMAGES[profileId];
-  hideProfileSelection();
-}
+let currentQuestion = 0;
+let score = 0;
+let highScore = localStorage.getItem('highScore') || 0;
+let lastScore = localStorage.getItem('lastScore') || 0;
 
 // Jogo principal
 function startGame() {
@@ -443,7 +399,6 @@ function startGame() {
   score = 0;
   showQuestion();
 }
-
 
 function showQuestion() {
   if (currentQuestion >= questions.length) {
@@ -489,7 +444,9 @@ function showResult() {
   document.getElementById("game").classList.add("hidden");
   document.getElementById("result").classList.remove("hidden");
   
-  document.getElementById("resultAvatar").src = PROFILE_IMAGES[currentProfile];
+  const avatarUrl = localStorage.getItem('avatar') || 'img/img1.png';
+  document.getElementById("resultAvatar").src = avatarUrl;
+  console.log('Avatar carregado:', avatarUrl); // Para debug
   
   const totalPoints = questions.length * POINTS_PER_CORRECT;
   
@@ -529,6 +486,7 @@ function animateValue(id, start, end, duration) {
   };
   window.requestAnimationFrame(step);
 }
+
 function showInstructions() {
   document.getElementById("menu").classList.add("hidden");
   document.getElementById("instructions").classList.remove("hidden");
@@ -538,7 +496,6 @@ function backToMenu() {
   document.getElementById("instructions").classList.add("hidden");
   document.getElementById("result").classList.add("hidden");
   document.getElementById("game").classList.add("hidden");
-  document.getElementById("profileSelection").classList.add("hidden");
   document.getElementById("menu").classList.remove("hidden");
   updateScoreDisplay();
 }
@@ -549,7 +506,7 @@ function updateScoreDisplay() {
 }
 
 window.onload = function() {
-  loadProfile();
+  updateScoreDisplay();
 };
 
 </script>
