@@ -2,14 +2,11 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Curso 1 - Teste de Ética no Trabalho</title>
-  <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
-
+  <title>Curso de Ética</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
@@ -87,44 +84,19 @@
 </div>
 
 <script>
-
-console.log('Avatar no localStorage:', localStorage.getItem('avatar'));
-
-function showResetConfirmation() {
-  document.getElementById("resetConfirm").classList.remove("hidden");
-  document.getElementById("resetScoreBtn").classList.add("hidden");
-}
-
-function hideResetConfirmation() {
-  document.getElementById("resetConfirm").classList.add("hidden");
-  document.getElementById("resetScoreBtn").classList.remove("hidden");
-}
-
-function resetHighScore() {
-  highScore = 0;
-  localStorage.setItem('highScore', highScore);
-  updateScoreDisplay();
-  hideResetConfirmation();
-  
-  const feedback = document.createElement('div');
-  feedback.textContent = 'Recorde resetado!';
-  feedback.style.position = 'fixed';
-  feedback.style.top = '50%';
-  feedback.style.left = '50%';
-  feedback.style.transform = 'translate(-50%, -50%)';
-  feedback.style.color = '#ff0000';
-  feedback.style.fontSize = '1.5em';
-  feedback.style.textShadow = '0 0 8px #ff0000';
-  feedback.style.zIndex = '1000';
-  feedback.style.animation = 'fadeOut 1.5s forwards';
-  feedback.style.pointerEvents = 'none'; 
-  
-  document.body.appendChild(feedback);
-  
-  setTimeout(() => {
-    feedback.remove();
-  }, 1500);
-}
+  // Configuração Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyAVZ-dvyJuGFF4fEHGjS-TrhzBmBslVwNs",
+    authDomain: "curso-3-inteligencia-emocional.firebaseapp.com",
+    projectId: "curso-3-inteligencia-emocional",
+    storageBucket: "curso-3-inteligencia-emocional.appspot.com",
+    messagingSenderId: "105031303963",
+    appId: "1:105031303963:web:0ecdcddc91fbb0af69c9be"
+  };
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+  const db = firebase.firestore();
 
 // Constantes
 const POINTS_PER_CORRECT = 150;
@@ -438,15 +410,25 @@ function showResult() {
   if (score > highScore) {
     highScore = score;
     localStorage.setItem('highScore', highScore);
+
+    // Atualiza o recorde no Firestore para o ADM ver
+    const usuario = localStorage.getItem('usuario') || 'desconhecido';
+    db.collection("usuarios").where("nome", "==", usuario).get().then(snapshot => {
+      if (!snapshot.empty) {
+        snapshot.docs[0].ref.update({ highScoreEtica: Number(highScore) });
+      }
+    });
   }
   localStorage.setItem('lastScore', lastScore);
-  
+
+  // ADICIONE ESTA LINHA para atualizar o gráfico da central:
+  localStorage.setItem('score_empatia', highScore);
+
   document.getElementById("game").classList.add("hidden");
   document.getElementById("result").classList.remove("hidden");
   
   const avatarUrl = localStorage.getItem('avatar') || 'img/img1.png';
   document.getElementById("resultAvatar").src = avatarUrl;
-  console.log('Avatar carregado:', avatarUrl); // Para debug
   
   const totalPoints = questions.length * POINTS_PER_CORRECT;
   
@@ -470,7 +452,18 @@ function showResult() {
   
   updateScoreDisplay();
   
-  localStorage.setItem("score_empatia", highScore);
+  // Salvar pontuação no Firestore
+  try {
+    const usuario = localStorage.getItem('usuario') || 'desconhecido';
+    db.collection("pontuacoes").add({
+      usuario: usuario,
+      curso: "ética",
+      pontuacao: score,
+      data: new Date()
+    });
+  } catch (e) {
+    console.error("Erro ao salvar pontuação no Firestore:", e);
+  }
 }
 
 function animateValue(id, start, end, duration) {
@@ -505,10 +498,32 @@ function updateScoreDisplay() {
   document.getElementById('lastScoreValue').textContent = lastScore;
 }
 
+// Resetar recorde local e no Firestore
+function resetHighScore() {
+  highScore = 0;
+  localStorage.setItem('highScore', 0);
+  updateScoreDisplay();
+  hideResetConfirmation();
+
+  // Resetar no Firestore para o ADM ver
+  const usuario = localStorage.getItem('usuario') || 'desconhecido';
+  db.collection("usuarios").where("nome", "==", usuario).get().then(snapshot => {
+    if (!snapshot.empty) {
+      snapshot.docs[0].ref.update({ highScoreEtica: 0 });
+    }
+  });
+}
+
+function showResetConfirmation() {
+  document.getElementById('resetConfirm').classList.remove('hidden');
+}
+function hideResetConfirmation() {
+  document.getElementById('resetConfirm').classList.add('hidden');
+}
+
 window.onload = function() {
   updateScoreDisplay();
 };
-
 </script>
 </body>
 </html>

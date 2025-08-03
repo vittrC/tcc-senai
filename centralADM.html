@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Central ADM</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <style>
+    body { font-family: 'Russo One', sans-serif; background: #000000; color: #333; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 10px; border: 1px solid #ccc; text-align: center; }
+    th { background: #000000; }
+    .btn { padding: 6px 16px; border: none; border-radius: 4px; background: #00cc5c; color: #ffffff; cursor: pointer; margin: 2px;}
+    .btn:hover { background: #00fc54; }
+    #formUsuario { background: #000000; padding: 27px; border-radius: 8px; margin: 28px 0; display: none; }
+    #cursosUsuario { background: #000000; padding: 20px; border-radius: 8px; margin: 20px 0; display: none; }
+    .close-btn { float: right; cursor: pointer; color: #d32f2f; font-weight: bold; }
+    #rankingCursos { margin-top: 40px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>CENTRAL DO ADMINISTRADOR</h1>
+    <button class="btn" onclick="abrirFormularioNovoUsuario()">Adicionar Novo Usuário</button>
+    <button class="btn" onclick="logout()">Logout</button>
+    <table>
+      <thead>
+        <tr>
+          <th>NOME</th>
+          <th>SENHA</th>
+          <th>TIPO</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="usuariosBody"></tbody>
+    </table>
+
+    <div id="rankingCursos">
+    <div id="rankingCursos">
+      <h2>Cursos Mais Acessados</h2>
+      <table class="ranking-table">
+        <thead>
+          <tr>
+            <th>Curso</th>
+            <th>Acessos</th>
+          </tr>
+        </thead>
+        <tbody id="rankingBody"></tbody>
+      </table>
+      <button class="btn" onclick="atualizarRankingCursos()">Atualizar Ranking</button>
+    </div>
+
+    <!-- Formulário para adicionar/editar usuário -->
+    <div id="formUsuario">
+      <span class="close-btn" onclick="fecharFormulario()">X</span>
+      <h3 id="formTitulo">Novo Usuário</h3>
+      <input type="text" id="novoNome" placeholder="Nome"><br>
+      <input type="text" id="novaSenha" placeholder="Senha" class="input-senha"><br>
+      <select id="novoTipo">
+        <option value="usuario">Usuário</option>
+        <option value="adm">Administrador</option>
+      </select><br>
+      <button class="btn" onclick="salvarUsuario()">Salvar</button>
+      <button class="btn" onclick="fecharFormulario()">Cancelar</button>
+    </div>
+
+    <!-- Modal de cursos do usuário -->
+    <div id="cursosUsuario">
+      <span class="close-btn" onclick="fecharCursos()">X</span>
+      <h3 id="cursosTitulo">Cursos do Usuário</h3>
+      <div id="cursosConteudo"></div>
+    </div>
+  </div>
+
+  <script>
+    // Configuração Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAVZ-dvyJuGFF4fEHGjS-TrhzBmBslVwNs",
+      authDomain: "curso-3-inteligencia-emocional.firebaseapp.com",
+      projectId: "curso-3-inteligencia-emocional",
+      storageBucket: "curso-3-inteligencia-emocional.appspot.com",
+      messagingSenderId: "105031303963",
+      appId: "1:105031303963:web:0ecdcddc91fbb0af69c9be"
+    };
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
+    // Listar usuários
+    function listarUsuarios() {
+      db.collection("usuarios").get().then(snapshot => {
+        const tbody = document.getElementById("usuariosBody");
+        tbody.innerHTML = "";
+        snapshot.forEach(doc => {
+          const user = doc.data();
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${user.nome}</td>
+            <td>${user.senha || ""}</td>
+            <td>${user.tipo || "usuario"}</td>
+            <td>
+              <button class="btn" onclick="abrirEdicao('${doc.id}', '${user.nome}', '${user.senha}', '${user.tipo || "usuario"}')">Editar</button>
+              <button class="btn" onclick="removerUsuario('${doc.id}')">Remover</button>
+              <button class="btn" onclick="verCursos('${user.nome}')">Ver Cursos</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      });
+    }
+
+    // Abrir formulário para novo usuário
+    function abrirFormularioNovoUsuario() {
+      document.getElementById("formTitulo").innerText = "Novo Usuário";
+      document.getElementById("novoNome").value = "";
+      document.getElementById("novaSenha").value = "";
+      document.getElementById("novoTipo").value = "usuario";
+      document.getElementById("formUsuario").style.display = "block";
+      window.usuarioEditando = null;
+    }
+
+    // Abrir formulário para editar usuário
+    function abrirEdicao(id, nome, senha, tipo) {
+      document.getElementById("formTitulo").innerText = "Editar Usuário";
+      document.getElementById("novoNome").value = nome;
+      document.getElementById("novaSenha").value = senha;
+      document.getElementById("novoTipo").value = tipo;
+      document.getElementById("formUsuario").style.display = "block";
+      window.usuarioEditando = id;
+    }
+
+    // Salvar novo usuário ou editar existente
+    function salvarUsuario() {
+      const nome = document.getElementById("novoNome").value.trim();
+      const senha = document.getElementById("novaSenha").value;
+      const tipo = document.getElementById("novoTipo").value;
+      if (!nome || (!senha && !window.usuarioEditando)) {
+        alert("Preencha nome e senha!");
+        return;
+      }
+      if (window.usuarioEditando) {
+        // Atualizar usuário existente
+        let updateData = { nome, tipo };
+        if (senha) updateData.senha = senha;
+        db.collection("usuarios").doc(window.usuarioEditando).update(updateData).then(() => {
+          fecharFormulario();
+          listarUsuarios();
+        });
+      } else {
+        // Adicionar novo usuário
+        db.collection("usuarios").add({ nome, senha, tipo }).then(() => {
+          fecharFormulario();
+          listarUsuarios();
+        });
+      }
+    }
+
+    // Remover usuário
+    function removerUsuario(id) {
+      if (confirm("Tem certeza que deseja remover este usuário?")) {
+        db.collection("usuarios").doc(id).delete().then(listarUsuarios);
+      }
+    }
+
+    // Fechar formulário
+    function fecharFormulario() {
+      document.getElementById("formUsuario").style.display = "none";
+      window.usuarioEditando = null;
+    }
+
+    // Ver cursos feitos pelo usuário (exemplo: buscar pontuações)
+    function verCursos(nome) {
+      document.getElementById("cursosTitulo").innerText = `Cursos de ${nome}`;
+      const conteudo = document.getElementById("cursosConteudo");
+      conteudo.innerHTML = "Carregando...";
+
+      db.collection("pontuacoes").where("usuario", "==", nome).get().then(snapshot => {
+        if (snapshot.empty) {
+          conteudo.innerHTML = "<p>Nenhum curso registrado para este usuário.</p>";
+        } else {
+          let html = "<table style='width:100%;'><tr><th>Curso</th><th>Pontuação</th></tr>";
+          let cursosContagem = {};
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            html += `<tr><td>${data.curso}</td><td>${data.pontuacao}</td></tr>`;
+            cursosContagem[data.curso] = (cursosContagem[data.curso] || 0) + 1;
+          });
+          html += "</table>";
+
+          // Descobrir o curso mais acessado
+          let maisAcessado = "";
+          let maxAcessos = 0;
+          for (const curso in cursosContagem) {
+            if (cursosContagem[curso] > maxAcessos) {
+              maxAcessos = cursosContagem[curso];
+              maisAcessado = curso;
+            }
+          }
+          if (maisAcessado) {
+            html += `<p><b>Curso mais acessado:</b> ${maisAcessado} (${maxAcessos}x)</p>`;
+          }
+          conteudo.innerHTML = html;
+        }
+      }).catch(() => {
+        conteudo.innerHTML = "<p>Erro ao buscar cursos.</p>";
+      });
+
+      document.getElementById("cursosUsuario").style.display = "block";
+    }
+
+    function fecharCursos() {
+      document.getElementById("cursosUsuario").style.display = "none";
+    }
+
+    // Logout
+    function logout() {
+      if (firebase.auth) {
+        firebase.auth().signOut().then(function() {
+          localStorage.clear();
+          window.location.href = "login.html";
+        }).catch(function(error) {
+          alert("Erro ao fazer logout: " + error.message);
+        });
+      } else {
+        localStorage.clear();
+        window.location.href = "login.html";
+      }
+    }
+
+    // Cursos disponíveis na central
+    const cursosDisponiveis = [
+      "ética",
+      "Trabalho em Equipe",
+      "Inteligência Emocional",
+      "Comunicação"
+    ];
+
+    // Função para atualizar o ranking de cursos mais acessados
+    function atualizarRankingCursos() {
+      // Busca todas as pontuações
+      db.collection("pontuacoes").get().then(snapshot => {
+        let contagem = {};
+        cursosDisponiveis.forEach(curso => contagem[curso] = 0);
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          // Normaliza o nome do curso para bater com os nomes da central
+          let nomeCurso = data.curso;
+          if (nomeCurso.toLowerCase() === "ética" || nomeCurso.toLowerCase() === "empatia") nomeCurso = "ética";
+          if (nomeCurso.toLowerCase().includes("equipe")) nomeCurso = "Trabalho em Equipe";
+          if (nomeCurso.toLowerCase().includes("emocional")) nomeCurso = "Inteligência Emocional";
+          if (nomeCurso.toLowerCase().includes("comunica")) nomeCurso = "Comunicação";
+          if (contagem[nomeCurso] !== undefined) {
+            contagem[nomeCurso]++;
+          }
+        });
+
+        // Monta o ranking
+        const ranking = Object.entries(contagem)
+          .sort((a, b) => b[1] - a[1]);
+
+        const tbody = document.getElementById("rankingBody");
+        tbody.innerHTML = "";
+        ranking.forEach(([curso, acessos]) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${curso}</td><td>${acessos}</td>`;
+          tbody.appendChild(tr);
+        });
+      });
+    }
+
+    // Proteção: só ADM pode acessar
+    if (localStorage.getItem("tipo") !== "adm") {
+      window.location.href = "login.html";
+    }
+
+    // Inicializar listagem ao abrir a página
+    listarUsuarios();
+    // Atualiza o ranking ao abrir a página
+    document.addEventListener("DOMContentLoaded", atualizarRankingCursos);
+  </script>
+</body>
+</html>
