@@ -1,89 +1,237 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Welcome to Firebase Hosting</title>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TypeRacer Neon Multiplayer</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      color: #00ff9c;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+    h1, h2, h3 {
+      text-shadow: 0 0 10px #00ff9c, 0 0 30px #00ff9c;
+      margin-bottom: 20px;
+    }
+    .container {
+      max-width: 800px;
+      width: 100%;
+      border: 2px solid #00ff9c;
+      border-radius: 12px;
+      box-shadow: 0 0 20px #00ff9c;
+      padding: 30px;
+      background-color: rgba(0, 0, 0, 0.8);
+      text-align: center;
+    }
+    .button {
+      margin-top: 20px;
+      padding: 12px 30px;
+      font-size: 1rem;
+      background: transparent;
+      border: 2px solid #00ff9c;
+      color: #00ff9c;
+      cursor: pointer;
+      border-radius: 6px;
+      box-shadow: 0 0 10px #00ff9c;
+      transition: 0.3s ease;
+    }
+    .button:hover {
+      background: #00ff9c;
+      color: black;
+    }
+    .hidden { display: none; }
+    .text-display {
+      font-size: 1.4rem;
+      margin-bottom: 20px;
+      line-height: 1.8;
+      min-height: 100px;
+    }
+    .input-area {
+      width: 100%;
+      padding: 15px;
+      font-size: 1.2rem;
+      border: 2px solid #00ff9c;
+      border-radius: 8px;
+      background: black;
+      color: #00ff9c;
+    }
+    .stats {
+      margin-top: 20px;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="menu">
+    <h1>TypeRacer Neon</h1>
+    <h3>Multiplayer Online - Sala com até 6 jogadores</h3>
+    <button class="button" onclick="entrarNaSala()">Iniciar</button>
+  </div>
 
-    <!-- update the version number as needed -->
-    <script defer src="/__/firebase/12.0.0/firebase-app-compat.js"></script>
-    <!-- include only the Firebase features as you need -->
-    <script defer src="/__/firebase/12.0.0/firebase-auth-compat.js"></script>
-    <script defer src="/__/firebase/12.0.0/firebase-database-compat.js"></script>
-    <script defer src="/__/firebase/12.0.0/firebase-firestore-compat.js"></script>
-    <script defer src="/__/firebase/12.0.0/firebase-functions-compat.js"></script>
-    <script defer src="/__/firebase/12.0.0/firebase-messaging-compat.js"></script>
-    <script defer src="/__/firebase/12.0.0/firebase-storage-compat.js"></script>
-    <script defer src="/__/firebase/12.0.0/firebase-analytics-compat.js"></script>
-    <script defer src="/__/firebase/12.0.0/firebase-remote-config-compat.js"></script>
-    <script defer src="/__/firebase/12.0.0/firebase-performance-compat.js"></script>
-    <!-- 
-      initialize the SDK after all desired features are loaded, set useEmulator to false
-      to avoid connecting the SDK to running emulators.
-    -->
-    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
-
-    <style media="screen">
-      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
-      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px; border-radius: 3px; }
-      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
-      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
-      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
-      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
-      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
-      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
-      @media (max-width: 600px) {
-        body, #message { margin-top: 0; background: white; box-shadow: none; }
-        body { border-top: 16px solid #ffa100; }
-      }
-    </style>
-  </head>
-  <body>
-    <div id="message">
-      <h2>Welcome</h2>
-      <h1>Firebase Hosting Setup Complete</h1>
-      <p>You're seeing this because you've successfully setup Firebase Hosting. Now it's time to go build something extraordinary!</p>
-      <a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a>
+  <div class="container hidden" id="game">
+    <h2>Sala: <span id="salaId">...</span></h2>
+    <div class="stats">
+      Jogador: <span id="nomeJogador">...</span><br>
+      Rodada: <span id="rodada">1</span>/10 |
+      Pontos: <span id="pontuacao">0</span> |
+      Tempo: <span id="tempo">0</span>s
     </div>
-    <p id="load">Firebase SDK Loading&hellip;</p>
+    <div class="text-display" id="fraseDisplay"></div>
+    <input type="text" class="input-area" id="entrada" placeholder="Digite aqui..." disabled />
+    <div class="stats" id="feedback"></div>
+  </div>
 
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const loadEl = document.querySelector('#load');
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-        // // The Firebase SDK is initialized and available here!
-        //
-        // firebase.auth().onAuthStateChanged(user => { });
-        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
-        // firebase.firestore().doc('/foo/bar').get().then(() => { });
-        // firebase.functions().httpsCallable('yourFunction')().then(() => { });
-        // firebase.messaging().requestPermission().then(() => { });
-        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
-        // firebase.analytics(); // call to activate
-        // firebase.analytics().logEvent('tutorial_completed');
-        // firebase.performance(); // call to activate
-        //
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+  <script>
+    // CONFIGURE COM SEU PROJETO
+  const firebaseConfig = {
+       apiKey: "AIzaSyAVZ-dvyJuGFF4fEHGjS-TrhzBmBslVwNs",
+       authDomain: "curso-3-inteligencia-emocional.firebaseapp.com",
+       projectId: "curso-3-inteligencia-emocional",
+       storageBucket: "curso-3-inteligencia-emocional.firebasestorage.app",
+       messagingSenderId: "105031303963",
+       appId: "1:105031303963:web:0ecdcddc91fbb0af69c9be"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-        try {
-          let app = firebase.app();
-          let features = [
-            'auth', 
-            'database', 
-            'firestore',
-            'functions',
-            'messaging', 
-            'storage', 
-            'analytics', 
-            'remoteConfig',
-            'performance',
-          ].filter(feature => typeof app[feature] === 'function');
-          loadEl.textContent = `Firebase SDK loaded with ${features.join(', ')}`;
-        } catch (e) {
-          console.error(e);
-          loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
+    const frases = [
+      "A comunicação eficaz é a base de qualquer relação bem-sucedida.",
+      "Falar é uma necessidade, escutar é uma arte.",
+      "Palavras são poderosas, use-as com sabedoria.",
+      "A clareza na fala evita ruídos na escuta.",
+      "Empatia é entender antes de responder.",
+      "O silêncio também comunica.",
+      "Boas conversas geram grandes ideias.",
+      "Conexões verdadeiras nascem de palavras sinceras.",
+      "A voz calma acalma até o caos.",
+      "Ser ouvido é tão importante quanto ser entendido.",
+      "Conversar é mais que falar, é se conectar.",
+      "A escuta ativa transforma discussões em acordos.",
+      "O tom muda o significado das palavras.",
+      "Palavras ditas não voltam, escolha com atenção.",
+      "Comunique com intenção, não por obrigação.",
+      "Respostas rápidas não são sempre as melhores.",
+      "A comunicação começa com respeito.",
+      "Entender não é o mesmo que concordar.",
+      "A paciência melhora qualquer conversa.",
+      "O diálogo é o caminho para soluções reais."
+    ];
+
+    const jogadorId = "Jogador-" + Math.floor(Math.random() * 10000);
+    let salaDoc, salaId;
+    let rodadaAtual = 0;
+    let pontuacao = 0;
+    let fraseAtual = "";
+    let tempoInicio, timer;
+    const maxRodadas = 10;
+
+    async function entrarNaSala() {
+      document.getElementById("menu").classList.add("hidden");
+      document.getElementById("nomeJogador").textContent = jogadorId;
+
+      const salas = await db.collection("salas").get();
+      let sala = null;
+
+      for (const doc of salas.docs) {
+        const data = doc.data();
+        if (data.jogadores.length < 6 && !data.finalizado) {
+          sala = doc;
+          break;
+        }
+      }
+
+      if (!sala) {
+        salaId = "sala-" + Math.floor(Math.random() * 10000);
+        await db.collection("salas").doc(salaId).set({
+          jogadores: [jogadorId],
+          rodada: 0,
+          finalizado: false
+        });
+      } else {
+        salaId = sala.id;
+        await db.collection("salas").doc(salaId).update({
+          jogadores: firebase.firestore.FieldValue.arrayUnion(jogadorId)
+        });
+      }
+
+      document.getElementById("salaId").textContent = salaId;
+      document.getElementById("game").classList.remove("hidden");
+
+      salaDoc = db.collection("salas").doc(salaId);
+      salaDoc.onSnapshot(doc => {
+        const data = doc.data();
+        rodadaAtual = data.rodada;
+
+        if (rodadaAtual >= maxRodadas) {
+          encerrarJogo();
+        } else if (data.frase && data.frase !== fraseAtual) {
+          iniciarRodada(data.frase);
         }
       });
-    </script>
-  </body>
+
+      // Se for o primeiro jogador, inicia a rodada
+      const docData = (await salaDoc.get()).data();
+      if (docData.jogadores[0] === jogadorId) {
+        proximaRodada();
+      }
+    }
+
+    function proximaRodada() {
+      const novaFrase = frases[Math.floor(Math.random() * frases.length)];
+      fraseAtual = novaFrase;
+      salaDoc.update({
+        rodada: rodadaAtual + 1,
+        frase: novaFrase
+      });
+    }
+
+    function iniciarRodada(frase) {
+      document.getElementById("entrada").value = "";
+      document.getElementById("entrada").disabled = false;
+      document.getElementById("entrada").focus();
+      document.getElementById("fraseDisplay").textContent = frase;
+      document.getElementById("rodada").textContent = rodadaAtual + 1;
+      document.getElementById("feedback").textContent = "";
+      tempoInicio = Date.now();
+      clearInterval(timer);
+      timer = setInterval(() => {
+        const tempo = Math.floor((Date.now() - tempoInicio) / 1000);
+        document.getElementById("tempo").textContent = tempo;
+      }, 1000);
+    }
+
+    document.getElementById("entrada").addEventListener("input", () => {
+      const entrada = document.getElementById("entrada").value.trim();
+      if (entrada === fraseAtual) {
+        clearInterval(timer);
+        const tempoTotal = Math.floor((Date.now() - tempoInicio) / 1000);
+        const wpm = Math.round((fraseAtual.split(" ").length / tempoTotal) * 60);
+        const pontos = Math.max(100 - tempoTotal * 2, 10) + wpm;
+        pontuacao += pontos;
+
+        document.getElementById("pontuacao").textContent = pontuacao;
+        document.getElementById("feedback").textContent = `✅ +${pontos} pontos | WPM: ${wpm}`;
+        document.getElementById("entrada").disabled = true;
+
+        if (jogadorId === "Jogador-" + salaId.split("-")[1]) {
+          setTimeout(() => proximaRodada(), 3000);
+        }
+      }
+    });
+
+    function encerrarJogo() {
+      document.getElementById("fraseDisplay").innerHTML = "<strong>🏁 Fim do Jogo</strong>";
+      document.getElementById("entrada").classList.add("hidden");
+      document.getElementById("feedback").innerHTML += `<br><br><strong>Pontuação final: ${pontuacao}</strong>`;
+    }
+  </script>
+</body>
 </html>
