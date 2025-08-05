@@ -3,9 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TypeRacer Neon Multiplayer</title>
+  <title>Comunicação</title>
+
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+  <!-- Estilo Neon -->
   <style>
     body {
       margin: 0;
@@ -17,10 +21,7 @@
       align-items: center;
       padding: 40px 20px;
     }
-    h1, h2, h3 {
-      text-shadow: 0 0 10px #00ff9c, 0 0 30px #00ff9c;
-      margin-bottom: 20px;
-    }
+
     .container {
       max-width: 800px;
       width: 100%;
@@ -31,8 +32,9 @@
       background-color: rgba(0, 0, 0, 0.8);
       text-align: center;
     }
+
     .button {
-      margin-top: 20px;
+      margin: 10px;
       padding: 12px 30px;
       font-size: 1rem;
       background: transparent;
@@ -43,195 +45,373 @@
       box-shadow: 0 0 10px #00ff9c;
       transition: 0.3s ease;
     }
+
     .button:hover {
       background: #00ff9c;
       color: black;
     }
-    .hidden { display: none; }
+
+    .hidden {
+      display: none;
+    }
+
+    .oculto {
+      display: none;
+    }
+
     .text-display {
       font-size: 1.4rem;
       margin-bottom: 20px;
       line-height: 1.8;
       min-height: 100px;
     }
+
     .input-area {
       width: 100%;
-      padding: 15px;
+      padding: 8px;
       font-size: 1.2rem;
       border: 2px solid #00ff9c;
       border-radius: 8px;
       background: black;
       color: #00ff9c;
     }
+
     .stats {
       margin-top: 20px;
       font-size: 1rem;
     }
+
+    .player-list {
+      text-align: left;
+      margin-top: 10px;
+    }
+
+    #resultadoFinal {
+      color: #00ffcc;
+      font-family: 'Russo One', sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+
+    #ranking div {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin: 10px 0;
+      font-size: 1.2rem;
+      color: #ffffff;
+      background: rgba(0, 255, 200, 0.1);
+      border: 1px solid #00ffcc;
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    #ranking img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+
+    /* Novo estilo para o cronômetro */
+    .cronometro {
+      margin: 10px 0;
+      height: 20px;
+      width: 100%;
+      background: #222;
+      border: 1px solid #00ff9c;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .cronometro-barra {
+      height: 100%;
+      background: linear-gradient(90deg, #00ff9c, #00bfa6);
+      width: 100%;
+      transition: width 1s linear;
+    }
+
+    .feedback {
+      margin-top: 10px;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
-  <div class="container" id="menu">
-    <h1>TypeRacer Neon</h1>
-    <h3>Multiplayer Online - Sala com até 6 jogadores</h3>
-    <button class="button" onclick="entrarNaSala()">Iniciar</button>
-  </div>
 
-  <div class="container hidden" id="game">
-    <h2>Sala: <span id="salaId">...</span></h2>
-    <div class="stats">
-      Jogador: <span id="nomeJogador">...</span><br>
-      Rodada: <span id="rodada">1</span>/10 |
-      Pontos: <span id="pontuacao">0</span> |
-      Tempo: <span id="tempo">0</span>s
-    </div>
-    <div class="text-display" id="fraseDisplay"></div>
-    <input type="text" class="input-area" id="entrada" placeholder="Digite aqui..." disabled />
-    <div class="stats" id="feedback"></div>
+<!-- MENU -->
+<div class="container" id="menu">
+  <h1>COMUNICAÇÃO</h1>
+  <button class="button" onclick="criarSala()">Criar Sala</button>
+  <button class="button" onclick="mostrarEntrada()">Entrar em Sala</button>
+  <div id="entradaSala" class="hidden">
+    <input id="codigoSala" placeholder="Código da sala..." class="input-area" />
+    <button class="button" onclick="entrarEmSala()">Entrar</button>
   </div>
+</div>
 
-  <script>
-    // CONFIGURE COM SEU PROJETO
+<!-- SALA -->
+<div class="container hidden" id="sala">
+  <h2>Sala: <span id="salaIdTexto">...</span></h2>
+  <div>Você é: <strong><span id="nomeJogador">...</span></strong></div>
+  <div class="player-list" id="jogadoresLista"></div>
+  <button class="button hidden" id="comecarJogoBtn" onclick="iniciarJogo()">Começar Jogo</button>
+  <button class="button" onclick="voltarMenu()">Voltar ao Menu</button>
+</div>
+
+<!-- JOGO -->
+<div class="container hidden" id="jogo">
+  <h2>Sala: <span id="salaIdTexto2">...</span></h2>
+  <div class="stats">
+    Rodada: <span id="rodada">1</span>/5 |
+    Pontuação: <span id="pontuacao">0</span>
+  </div>
+  <div class="text-display" id="fraseDisplay"></div>
+  <div class="cronometro"><div class="cronometro-barra" id="barraTempo"></div></div>
+  <input type="text" class="input-area" id="entrada" placeholder="Digite aqui..." disabled />
+  <div class="feedback" id="feedback"></div>
+  <button class="button" onclick="voltarMenu()">Voltar ao Menu</button>
+</div>
+
+<!-- RESULTADO -->
+<div id="resultadoFinal" class="container oculto">
+  <h2>🏁 Resultado Final</h2>
+  <div id="ranking"></div>
+  <button class="button" onclick="voltarAoMenu()">Voltar ao Menu</button>
+</div>
+
+<!-- Sons -->
+<audio id="somAcerto" src="https://cdn.pixabay.com/audio/2022/03/15/audio_40523e415c.mp3"></audio>
+<audio id="somErro" src="https://cdn.pixabay.com/audio/2022/03/02/audio_59ff3cd7e2.mp3"></audio>
+<audio id="somFim" src="https://cdn.pixabay.com/audio/2022/10/24/audio_65e4f7d3f0.mp3"></audio>
+
+<script>
   const firebaseConfig = {
-       apiKey: "AIzaSyAVZ-dvyJuGFF4fEHGjS-TrhzBmBslVwNs",
-       authDomain: "curso-3-inteligencia-emocional.firebaseapp.com",
-       projectId: "curso-3-inteligencia-emocional",
-       storageBucket: "curso-3-inteligencia-emocional.firebasestorage.app",
-       messagingSenderId: "105031303963",
-       appId: "1:105031303963:web:0ecdcddc91fbb0af69c9be"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    apiKey: "AIzaSyAVZ-dvyJuGFF4fEHGjS-TrhzBmBslVwNs",
+    authDomain: "curso-3-inteligencia-emocional.firebaseapp.com",
+    projectId: "curso-3-inteligencia-emocional",
+    storageBucket: "curso-3-inteligencia-emocional.firebasestorage.app",
+    messagingSenderId: "105031303963",
+    appId: "1:105031303963:web:0ecdcddc91fbb0af69c9be"
+  };
 
-    const frases = [
-      "A comunicação eficaz é a base de qualquer relação bem-sucedida.",
-      "Falar é uma necessidade, escutar é uma arte.",
-      "Palavras são poderosas, use-as com sabedoria.",
-      "A clareza na fala evita ruídos na escuta.",
-      "Empatia é entender antes de responder.",
-      "O silêncio também comunica.",
-      "Boas conversas geram grandes ideias.",
-      "Conexões verdadeiras nascem de palavras sinceras.",
-      "A voz calma acalma até o caos.",
-      "Ser ouvido é tão importante quanto ser entendido.",
-      "Conversar é mais que falar, é se conectar.",
-      "A escuta ativa transforma discussões em acordos.",
-      "O tom muda o significado das palavras.",
-      "Palavras ditas não voltam, escolha com atenção.",
-      "Comunique com intenção, não por obrigação.",
-      "Respostas rápidas não são sempre as melhores.",
-      "A comunicação começa com respeito.",
-      "Entender não é o mesmo que concordar.",
-      "A paciência melhora qualquer conversa.",
-      "O diálogo é o caminho para soluções reais."
-    ];
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-    const jogadorId = "Jogador-" + Math.floor(Math.random() * 10000);
-    let salaDoc, salaId;
-    let rodadaAtual = 0;
-    let pontuacao = 0;
-    let fraseAtual = "";
-    let tempoInicio, timer;
-    const maxRodadas = 10;
+  const nomeUsuario = localStorage.getItem("usuario") || "Jogador";
+  const avatarUsuario = localStorage.getItem("avatar") || "img/img1.png";
 
-    async function entrarNaSala() {
-      document.getElementById("menu").classList.add("hidden");
-      document.getElementById("nomeJogador").textContent = jogadorId;
+  const frases = [
+    "A comunicação eficaz é a base de qualquer relação bem-sucedida.",
+    "Falar é uma necessidade, escutar é uma arte.",
+    "Palavras são poderosas, use-as com sabedoria.",
+    "A clareza na fala evita ruídos na escuta.",
+    "Empatia é entender antes de responder.",
+    "O silêncio também comunica.",
+    "Boas conversas geram grandes ideias.",
+    "Conexões verdadeiras nascem de palavras sinceras.",
+    "A voz calma acalma até o caos.",
+    "Ser ouvido é tão importante quanto ser entendido."
+  ];
 
-      const salas = await db.collection("salas").get();
-      let sala = null;
+  let salaRef, salaId, host = false, jogadorId, jogadores = [], fraseAtual = "";
+  let rodadaAtual = 0, pontuacao = 0, maxRodadas = 5;
+  let tempoMaximo = 30; // Tempo máximo por rodada em segundos
+  let tempoRestante = tempoMaximo;
+  let cronometroInterval;
+  const somAcerto = document.getElementById("somAcerto");
+  const somErro = document.getElementById("somErro");
+  const somFim = document.getElementById("somFim");
 
-      for (const doc of salas.docs) {
-        const data = doc.data();
-        if (data.jogadores.length < 6 && !data.finalizado) {
-          sala = doc;
-          break;
-        }
-      }
+  function criarSala() {
+    salaId = "sala-" + Math.floor(Math.random() * 10000);
+    jogadorId = nomeUsuario;
+    host = true;
 
-      if (!sala) {
-        salaId = "sala-" + Math.floor(Math.random() * 10000);
-        await db.collection("salas").doc(salaId).set({
-          jogadores: [jogadorId],
-          rodada: 0,
-          finalizado: false
-        });
-      } else {
-        salaId = sala.id;
-        await db.collection("salas").doc(salaId).update({
-          jogadores: firebase.firestore.FieldValue.arrayUnion(jogadorId)
-        });
-      }
-
-      document.getElementById("salaId").textContent = salaId;
-      document.getElementById("game").classList.remove("hidden");
-
-      salaDoc = db.collection("salas").doc(salaId);
-      salaDoc.onSnapshot(doc => {
-        const data = doc.data();
-        rodadaAtual = data.rodada;
-
-        if (rodadaAtual >= maxRodadas) {
-          encerrarJogo();
-        } else if (data.frase && data.frase !== fraseAtual) {
-          iniciarRodada(data.frase);
-        }
-      });
-
-      // Se for o primeiro jogador, inicia a rodada
-      const docData = (await salaDoc.get()).data();
-      if (docData.jogadores[0] === jogadorId) {
-        proximaRodada();
-      }
-    }
-
-    function proximaRodada() {
-      const novaFrase = frases[Math.floor(Math.random() * frases.length)];
-      fraseAtual = novaFrase;
-      salaDoc.update({
-        rodada: rodadaAtual + 1,
-        frase: novaFrase
-      });
-    }
-
-    function iniciarRodada(frase) {
-      document.getElementById("entrada").value = "";
-      document.getElementById("entrada").disabled = false;
-      document.getElementById("entrada").focus();
-      document.getElementById("fraseDisplay").textContent = frase;
-      document.getElementById("rodada").textContent = rodadaAtual + 1;
-      document.getElementById("feedback").textContent = "";
-      tempoInicio = Date.now();
-      clearInterval(timer);
-      timer = setInterval(() => {
-        const tempo = Math.floor((Date.now() - tempoInicio) / 1000);
-        document.getElementById("tempo").textContent = tempo;
-      }, 1000);
-    }
-
-    document.getElementById("entrada").addEventListener("input", () => {
-      const entrada = document.getElementById("entrada").value.trim();
-      if (entrada === fraseAtual) {
-        clearInterval(timer);
-        const tempoTotal = Math.floor((Date.now() - tempoInicio) / 1000);
-        const wpm = Math.round((fraseAtual.split(" ").length / tempoTotal) * 60);
-        const pontos = Math.max(100 - tempoTotal * 2, 10) + wpm;
-        pontuacao += pontos;
-
-        document.getElementById("pontuacao").textContent = pontuacao;
-        document.getElementById("feedback").textContent = `✅ +${pontos} pontos | WPM: ${wpm}`;
-        document.getElementById("entrada").disabled = true;
-
-        if (jogadorId === "Jogador-" + salaId.split("-")[1]) {
-          setTimeout(() => proximaRodada(), 3000);
-        }
-      }
+    db.collection("salas").doc(salaId).set({
+      jogadores: [{ nome: jogadorId, avatar: avatarUsuario }],
+      host: jogadorId,
+      status: "esperando",
+      rodada: 0,
+      frase: ""
     });
 
-    function encerrarJogo() {
-      document.getElementById("fraseDisplay").innerHTML = "<strong>🏁 Fim do Jogo</strong>";
-      document.getElementById("entrada").classList.add("hidden");
-      document.getElementById("feedback").innerHTML += `<br><br><strong>Pontuação final: ${pontuacao}</strong>`;
+    iniciarSala();
+  }
+
+  function mostrarEntrada() {
+    document.getElementById("entradaSala").classList.remove("hidden");
+  }
+
+  async function entrarEmSala() {
+    salaId = document.getElementById("codigoSala").value;
+    if (!salaId) return alert("Digite um código de sala!");
+
+    const doc = await db.collection("salas").doc(salaId).get();
+    if (!doc.exists) return alert("Sala não encontrada!");
+
+    jogadores = doc.data().jogadores;
+    jogadorId = nomeUsuario;
+
+    await db.collection("salas").doc(salaId).update({
+      jogadores: firebase.firestore.FieldValue.arrayUnion({ nome: jogadorId, avatar: avatarUsuario })
+    });
+
+    iniciarSala();
+  }
+
+  function iniciarSala() {
+    document.getElementById("menu").classList.add("hidden");
+    document.getElementById("sala").classList.remove("hidden");
+    document.getElementById("salaIdTexto").textContent = salaId;
+    document.getElementById("nomeJogador").textContent = jogadorId;
+
+    salaRef = db.collection("salas").doc(salaId);
+    salaRef.onSnapshot(doc => {
+      const data = doc.data();
+      jogadores = data.jogadores;
+
+      document.getElementById("jogadoresLista").innerHTML = "<h3>Jogadores:</h3>" +
+        jogadores.map(j => `
+          <div style="display: flex; align-items: center; margin: 5px 0;">
+            <img src="${j.avatar}" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;" />
+            <span>${j.nome}</span>
+          </div>`).join("");
+
+      if (host && jogadores.length > 1 && data.status === "esperando") {
+        document.getElementById("comecarJogoBtn").classList.remove("hidden");
+      }
+
+      if (data.status === "jogando") {
+        document.getElementById("sala").classList.add("hidden");
+        document.getElementById("jogo").classList.remove("hidden");
+        document.getElementById("salaIdTexto2").textContent = salaId;
+        iniciarRodada(data.frase, data.rodada);
+      }
+
+      if (data.status === "finalizado") {
+        document.getElementById("jogo").classList.add("hidden");
+        mostrarResultadoFinal(data.jogadores);
+      }
+    });
+  }
+
+  function iniciarJogo() {
+    const frase = frases[Math.floor(Math.random() * frases.length)];
+    salaRef.update({
+      status: "jogando",
+      frase: frase,
+      rodada: 1
+    });
+  }
+
+  function iniciarRodada(frase, rodada) {
+    document.getElementById("entrada").value = "";
+    document.getElementById("entrada").disabled = false;
+    document.getElementById("entrada").focus();
+    document.getElementById("fraseDisplay").textContent = frase;
+    document.getElementById("rodada").textContent = rodada;
+    document.getElementById("feedback").textContent = "";
+    fraseAtual = frase;
+    rodadaAtual = rodada;
+    
+    // Configurar cronômetro
+    tempoRestante = tempoMaximo;
+    atualizarBarraTempo();
+    clearInterval(cronometroInterval);
+    cronometroInterval = setInterval(() => {
+      tempoRestante--;
+      atualizarBarraTempo();
+      if (tempoRestante <= 0) fimDoTempo();
+    }, 1000);
+  }
+
+  function atualizarBarraTempo() {
+    const percentual = (tempoRestante / tempoMaximo) * 100;
+    document.getElementById("barraTempo").style.width = percentual + "%";
+  }
+
+  function fimDoTempo() {
+    clearInterval(cronometroInterval);
+    document.getElementById("entrada").disabled = true;
+    document.getElementById("feedback").textContent = "⏰ Tempo esgotado!";
+    somErro.play();
+    
+    if (host && rodadaAtual < maxRodadas) {
+      setTimeout(() => {
+        const frase = frases[Math.floor(Math.random() * frases.length)];
+        salaRef.update({
+          rodada: rodadaAtual + 1,
+          frase: frase
+        });
+      }, 2000);
+    } else if (host && rodadaAtual >= maxRodadas) {
+      salaRef.update({ status: "finalizado" });
     }
-  </script>
+  }
+
+  document.getElementById("entrada").addEventListener("input", () => {
+    const entrada = document.getElementById("entrada").value;
+    if (entrada === fraseAtual) {
+      clearInterval(cronometroInterval);
+      const tempoGasto = tempoMaximo - tempoRestante;
+      const wpm = Math.round((fraseAtual.split(" ").length / tempoGasto) * 60);
+      const pontos = Math.max(100 - tempoGasto * 2, 10) + wpm;
+      pontuacao += pontos;
+      document.getElementById("pontuacao").textContent = pontuacao;
+      document.getElementById("feedback").textContent = `✅ +${pontos} pontos | WPM: ${wpm}`;
+      document.getElementById("entrada").disabled = true;
+      somAcerto.play();
+
+      // Atualizar pontuação no servidor
+      salaRef.get().then(doc => {
+        const jogadores = doc.data().jogadores;
+        const atualizados = jogadores.map(j =>
+          j.nome === jogadorId ? { ...j, pontos: pontuacao } : j
+        );
+        salaRef.update({ jogadores: atualizados });
+      });
+
+      if (host && rodadaAtual < maxRodadas) {
+        setTimeout(() => {
+          const frase = frases[Math.floor(Math.random() * frases.length)];
+          salaRef.update({
+            rodada: rodadaAtual + 1,
+            frase: frase
+          });
+        }, 2000);
+      } else if (host && rodadaAtual >= maxRodadas) {
+        salaRef.update({ status: "finalizado" });
+      }
+    }
+  });
+
+  function mostrarResultadoFinal(jogadoresPontuacao) {
+    const resultadoDiv = document.getElementById("resultadoFinal");
+    const rankingDiv = document.getElementById("ranking");
+    const ordenado = [...jogadoresPontuacao].sort((a, b) => (b.pontos || 0) - (a.pontos || 0));
+
+    rankingDiv.innerHTML = ordenado.map((j, i) => `
+      <div>
+        <strong>#${i + 1}</strong>
+        <img src="${j.avatar}" alt="Avatar">
+        <span>${j.nome} - ${j.pontos || 0} pts</span>
+      </div>
+    `).join("");
+
+    resultadoDiv.classList.remove("oculto");
+    somFim.play();
+  }
+
+  function voltarMenu() {
+    location.reload();
+  }
+
+  function voltarAoMenu() {
+    location.reload();
+  }
+</script>
+
 </body>
 </html>
