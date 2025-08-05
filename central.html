@@ -4,227 +4,50 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Central de Cursos</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/stylecentral.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-  <style>
-    .container {
-      max-width: 1200px;
-      margin: 120px auto;
-      padding: 40px 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 50px;
-    }
-    .course-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
-      gap: 20px;
-      width: 100%;
-    }
-    .course-card {
-      background: rgba(0, 0, 0, 0.85);
-      border: 2px solid #00ff9c;
-      border-radius: 11px;
-      padding: 40px 20px;
-      text-align: center;
-      box-shadow: 0 0 30px 3px #00ff9d6b;
-      position: relative;
-      overflow: hidden;
-      transition: transform 0.4s ease-in-out;
-    }
-    .course-card::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle, #00ff9d60, transparent 60%);
-      transform: translateX(-100%) rotate(45deg);
-      animation: shine 6s infinite linear;
-      pointer-events: none;
-    }
-    @keyframes shine {
-      0% { transform: translateX(-100%) rotate(45deg); }
-      50% { transform: translateX(100%) rotate(45deg); }
-      100% { transform: translateX(100%) rotate(45deg); }
-    }
-    .course-icon {
-      font-size: 3.5rem;
-      margin-bottom: 1rem;
-    }
-    .course-title {
-      font-size: 1.75rem;
-      margin-bottom: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      color: #00ff9c;
-      text-shadow: 0 0 8px #00ff9c, 0 0 20px, #00ff9c;
-    }
-    .course-desc {
-      font-size: 1rem;
-      margin-bottom: 1.5rem;
-      color: #00ff9c;
-      line-height: 1.4;
-    }
-    .mb-56 {
-      margin-bottom: 56px !important;
-    }
-    .btn {
-      background: transparent;
-      border: 2px solid #00ff9c;
-      color: #00ff9c;
-      padding: 12px 25px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 1em;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      transition: all 0.3s ease;
-      box-shadow: 0 0 5px #00ff9c;
-      text-decoration: none;
-      display: inline-block;
-    }
-    .btn:hover {
-      background: #00ff9c;
-      color: #000;
-      transform: scale(1.05);
-      box-shadow: 0 0 15px #00ff9c;
-    }
-    .btn-logout {
-      margin-top: 20px;
-    }
-    .btn-logout-footer {
-      margin-top: 20px;
-    }
-    .btn-logout-footer-2 {
-      margin-top: 20px;
-    }
-    .hero {
-      text-align: center;
-      color: #00ff9c;
-      text-shadow: 0 0 8px #00ff9c, 0 0 20px #00ff9c;
-    }
-    .hero h1 {
-      font-size: 2.5em;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      margin-bottom: 10px;
-    }
-    .hero p {
-      font-size: 1.2em;
-      line-height: 1.4;
-    }
-    .stats-section {
-      width: 100%;
-      text-align: center;
-    }
-    .stats-title {
-      font-size: 2em;
-      color: #00ff9c;
-      text-shadow: 0 0 8px #00ff9d60;
-      margin-bottom: 20px;
-    }
-    .stats-chart {
-      width: 100%;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    footer {
-      text-align: center;
-      padding: 20px;
-      color: #00ff9c;
-      font-size: 0.9em;
-      text-shadow: 0 0 5px #00ff9d9b;
-    }
-    .material-symbols-outlined {
-      font-variation-settings:
-        'FILL' 0,
-        'wght' 400,
-        'GRAD' 0,
-        'opsz' 24;
-      font-size: 70px;
-    }
-    /* Avatar Menu */
-    #perfil-icone {
-      position: fixed;
-      top: 15px;
-      right: 15px;
-      cursor: pointer;
-      z-index: 100;
-    }
-    #perfil-icone img {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      border: 2px solid #00ff9c;
-      box-shadow: 0 0 10px #00ff9c;
-    }
-    #selecao-avatar {
-      position: fixed;
-      top: 90px;
-      right: 15px;
-      background: rgba(0, 0, 0, 0.85);
-      padding: 10px;
-      border: 2px solid #00ff9c;
-      border-radius: 10px;
-      display: grid;
-      grid-template-columns: repeat(6, 1fr); 
-      gap: 10px;
-      z-index: 99;
-}
-    #selecao-avatar.oculto {
-      display: none;
-    }
-    #selecao-avatar img.avatar {
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      cursor: pointer;
-      border: 2px solid transparent;
-      transition: border 0.2s, transform 0.2s;
-    }
-    #selecao-avatar img.avatar:hover {
-      border-color: #00ff9c;
-      transform: scale(1.1);
-    }
-  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 </head>
 <body>
   <div class="container">
 
+    <!-- Avatar de Perfil -->
     <div id="perfil-icone" onclick="mostrarOpcoesAvatar()">
       <img id="avatar-img" src="img/img1.png" alt="Avatar" />
     </div>
+
     <div id="selecao-avatar" class="oculto">
+      <!-- Avatares -->
       <img src="img/img1.png" class="avatar" onclick="selecionarAvatar('img/img1.png')">
-      <img src="img/img2.png" class="avatar" onclick="selecionarAvatar('img/img2.png')">
-      <img src="img/img3.png" class="avatar" onclick="selecionarAvatar('img/img3.png')">
-      <img src="img/img4.png" class="avatar" onclick="selecionarAvatar('img/img4.png')">
-      <img src="img/img5.png" class="avatar" onclick="selecionarAvatar('img/img5.png')">
-      <img src="img/img6.png" class="avatar" onclick="selecionarAvatar('img/img6.png')">
-      <img src="img/img7.png" class="avatar" onclick="selecionarAvatar('img/img7.png')">
-      <img src="img/img8.png" class="avatar" onclick="selecionarAvatar('img/img8.png')">
-      <img src="img/img9.png" class="avatar" onclick="selecionarAvatar('img/img9.png')">
-      <img src="img/img10.png" class="avatar" onclick="selecionarAvatar('img/img10.png')">
-      <img src="img/img11.png" class="avatar" onclick="selecionarAvatar('img/img11.png')">
-      <img src="img/img12.png" class="avatar" onclick="selecionarAvatar('img/img12.png')">    
+<img src="img/img2.png" class="avatar" onclick="selecionarAvatar('img/img2.png')">
+<img src="img/img3.png" class="avatar" onclick="selecionarAvatar('img/img3.png')">
+<img src="img/img4.png" class="avatar" onclick="selecionarAvatar('img/img4.png')">
+<img src="img/img5.png" class="avatar" onclick="selecionarAvatar('img/img5.png')">
+<img src="img/img6.png" class="avatar" onclick="selecionarAvatar('img/img6.png')">
+<img src="img/img7.png" class="avatar" onclick="selecionarAvatar('img/img7.png')">
+<img src="img/img8.png" class="avatar" onclick="selecionarAvatar('img/img8.png')">
+<img src="img/img9.png" class="avatar" onclick="selecionarAvatar('img/img9.png')">
+<img src="img/img10.png" class="avatar" onclick="selecionarAvatar('img/img10.png')">
+<img src="img/img11.png" class="avatar" onclick="selecionarAvatar('img/img11.png')">
+<img src="img/img12.png" class="avatar" onclick="selecionarAvatar('img/img12.png')">
 
     </div>
 
+    <!-- Hero -->
     <section class="hero">
       <h1>Central de Cursos</h1>
       <p>Desenvolva suas habilidades éticas corporativas com nossos módulos interativos</p>
     </section>
+
+    <!-- Cursos -->
     <section class="course-grid">
-        <p class="course-desc mb-56">Aprenda a se colocar no lugar do outro e fortalecer conexões no ambiente de Trabalho.</p>
+      <div class="course-card">
         <span class="material-symbols-outlined">volunteer_activism</span>
         <h3 class="course-title">Empatia</h3>
-        <p class="course-desc mb-56">Aprenda a se colocar no lugar do outro e fortalecer conexões no ambiente de Trabalho.</p>
+        <p class="course-desc">Aprenda a se colocar no lugar do outro e fortalecer conexões no ambiente de trabalho.</p>
         <a href="ética.html" class="btn">Acessar Curso</a>
       </div>
       <div class="course-card">
@@ -247,6 +70,7 @@
       </div>
     </section>
 
+    <!-- Estatísticas -->
     <section class="stats-section">
       <h2 class="stats-title">Sua Pontuação</h2>
       <div class="stats-chart">
@@ -254,19 +78,79 @@
       </div>
     </section>
 
-      <button id="logout-btn-footer-2" class="btn btn-logout-footer-2">Logout</button>
-      &copy; Emerald Vault 2025 - Financiada por Boris Borges Bolesvav
-      <br>
-      <button id="logout-btn-footer-3" class="btn btn-logout-footer-2">Logout</button>
+    <!-- Rodapé -->
+    <footer>
+      <button id="logout-btn" class="btn btn-logout-footer">Logout</button>
     </footer>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script>
     if (!localStorage.getItem("usuario")) {
-    window.location.href = "login.html";
-  }
+      window.location.href = "login.html";
+    }
 
+    const firebaseConfig = {
+      apiKey: "AIzaSyAVZ-dvyJuGFF4fEHGjS-TrhzBmBslVwNs",
+      authDomain: "curso-3-inteligencia-emocional.firebaseapp.com",
+      projectId: "curso-3-inteligencia-emocional",
+      storageBucket: "curso-3-inteligencia-emocional.appspot.com",
+      messagingSenderId: "105031303963",
+      appId: "1:105031303963:web:0ecdcddc91fbb0af69c9be"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const nomeUsuario = localStorage.getItem("usuario");
+
+    async function carregarAvatar() {
+      try {
+        const snapshot = await db.collection("usuarios").where("nome", "==", nomeUsuario).limit(1).get();
+        if (!snapshot.empty) {
+          const avatar = snapshot.docs[0].data().avatar || 'img/img1.png';
+          document.getElementById("avatar-img").src = avatar;
+          localStorage.setItem('avatar', avatar);
+        }
+      } catch (e) {
+        console.error("Erro ao carregar avatar:", e);
+      }
+    }
+    carregarAvatar();
+
+    function mostrarOpcoesAvatar() {
+      document.getElementById("selecao-avatar").classList.toggle("oculto");
+    }
+
+    async function selecionarAvatar(src) {
+      try {
+        const snapshot = await db.collection("usuarios").where("nome", "==", nomeUsuario).limit(1).get();
+        if (!snapshot.empty) {
+          await snapshot.docs[0].ref.update({ avatar: src });
+          document.getElementById("avatar-img").src = src;
+          document.getElementById("selecao-avatar").classList.add("oculto");
+          localStorage.setItem('avatar', src);
+        }
+      } catch (e) {
+        console.error("Erro ao salvar avatar:", e);
+        alert("Erro ao atualizar avatar.");
+      }
+    }
+
+    function logoutHandler() {
+      if (firebase.auth) {
+        firebase.auth().signOut().then(() => {
+          localStorage.clear();
+          window.location.href = "login.html";
+        }).catch((error) => {
+          alert("Erro ao fazer logout: " + error.message);
+        });
+      } else {
+        localStorage.clear();
+        window.location.href = "login.html";
+      }
+    }
+
+    document.getElementById('logout-btn').onclick = logoutHandler;
+
+    // Gráfico de pontuação
     const scores = {
       empatia: parseInt(localStorage.getItem("score_empatia") || 0),
       equipe: parseInt(localStorage.getItem("score_equipe") || 0),
@@ -280,12 +164,7 @@
         labels: ['Empatia', 'Trabalho em Equipe', 'Inteligência Emocional', 'Comunicação'],
         datasets: [{
           label: 'Pontuação Recorde',
-          data: [
-            scores.empatia,
-            scores.equipe,
-            scores.emocional,
-            scores.comunicacao
-          ],
+          data: Object.values(scores),
           backgroundColor: '#00ff9c',
           borderColor: '#00ff9c',
           borderWidth: 2
@@ -309,73 +188,6 @@
         }
       }
     });
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyAVZ-dvyJuGFF4fEHGjS-TrhzBmBslVwNs",
-      authDomain: "curso-3-inteligencia-emocional.firebaseapp.com",
-      projectId: "curso-3-inteligencia-emocional",
-      storageBucket: "curso-3-inteligencia-emocional.appspot.com",
-      messagingSenderId: "105031303963",
-      appId: "1:105031303963:web:0ecdcddc91fbb0af69c9be"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const nomeUsuario = localStorage.getItem("usuario");
-
-    function logoutHandler() {
-      if (firebase.auth) {
-        firebase.auth().signOut().then(function() {
-          localStorage.clear();
-          window.location.href = "login.html";
-        }).catch(function(error) {
-          alert("Erro ao fazer logout: " + error.message);
-        });
-      } else {
-        localStorage.clear();
-        window.location.href = "login.html";
-      }
-    }
-    document.getElementById('logout-btn').onclick = logoutHandler;
-    document.getElementById('logout-btn-footer').onclick = logoutHandler;
-    document.getElementById('logout-btn-footer-2').onclick = logoutHandler;
-    document.getElementById('logout-btn-footer-3').onclick = logoutHandler;
-
-    async function carregarAvatar() {
-  try {
-    const usuariosRef = db.collection("usuarios");
-    const snapshot = await usuariosRef.where("nome", "==", nomeUsuario).limit(1).get();
-    if (!snapshot.empty) {
-      const avatar = snapshot.docs[0].data().avatar || 'img/img1.png';
-      document.getElementById("avatar-img").src = avatar;
-      localStorage.setItem('avatar', avatar);
-    }
-  } catch (e) {
-    console.error("Erro ao carregar avatar:", e);
-  }
-}
-    carregarAvatar();
-
-    function mostrarOpcoesAvatar() {
-      document.getElementById("selecao-avatar").classList.toggle("oculto");
-    }
-
-    async function selecionarAvatar(src) {
-  try {
-    const usuariosRef = db.collection("usuarios");
-    const snapshot = await usuariosRef.where("nome", "==", nomeUsuario).limit(1).get();
-    if (!snapshot.empty) {
-      await snapshot.docs[0].ref.update({ avatar: src });
-      document.getElementById("avatar-img").src = src;
-      document.getElementById("selecao-avatar").classList.add("oculto");
-      
-      // ADIÇÃO: Salvar no localStorage também
-      localStorage.setItem('avatar', src);
-    }
-  } catch (e) {
-    console.error("Erro ao salvar avatar:", e);
-    alert("Erro ao atualizar avatar.");
-  }
-}
   </script>
 </body>
 </html>
