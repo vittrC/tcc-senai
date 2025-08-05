@@ -6,17 +6,16 @@
   <title>COMUNICAÇÃO</title>
 
   <!-- Fontes -->
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet">
   
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
+  <!-- Estilo Cyberpunk Neon -->
   <style>
     :root {
       --neon-green: #00ff9c;
-      --neon-blue: #00b4ff;
-      --neon-purple: #6c07ab;
       --dark-bg: #0a0a14;
       --darker-bg: #050510;
     }
@@ -24,6 +23,7 @@
     * {
       box-sizing: border-box;
     }
+
 
     @keyframes pulse {
       0%, 100% {
@@ -105,7 +105,6 @@
       z-index: -1;
     }
 
-
     .container {
       max-width: 800px;
       width: 100%;
@@ -115,21 +114,39 @@
       padding: 30px;
       background-color: rgba(10, 10, 20, 0.9);
       text-align: center;
+      position: relative;
+      overflow: hidden;
       margin: 20px 0;
       transition: all 0.3s ease;
+      animation: pulse 3s infinite;
     }
 
-    h1, h2 {
-      font-family: 'Orbitron', sans-serif;
+    .container::before {
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      right: -10px;
+      bottom: -10px;
+      border: 2px solid var(--neon-pink);
+      border-radius: 15px;
+      z-index: -1;
+      opacity: 0.7;
+      animation: pulse 4s infinite reverse;
+    }
+
+    h1, h2, h3 {
+      font-family: 'Press Start 2P', cursive;
       color: var(--neon-green);
+      text-shadow: 0 0 10px var(--neon-green);
       margin-top: 0;
-      font-weight: 700;
+      animation: flicker 3s infinite alternate;
     }
 
     h1 {
       font-size: 2.5rem;
       margin-bottom: 30px;
-      letter-spacing: 2px;
+      letter-spacing: 3px;
     }
 
     h2 {
@@ -148,17 +165,47 @@
       color: var(--neon-green);
       cursor: pointer;
       border-radius: 8px;
+      box-shadow: 0 0 15px var(--neon-green);
       transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
       letter-spacing: 1px;
+      text-transform: uppercase;
     }
 
     .button:hover {
       background: var(--neon-green);
       color: var(--darker-bg);
-      box-shadow: 0 0 20px var(--neon-green);
+      text-shadow: 0 0 5px var(--darker-bg);
+      box-shadow: 0 0 30px var(--neon-green);
+      transform: translateY(-3px);
+    }
+
+    .button::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(0, 255, 156, 0.4),
+        transparent
+      );
+      transition: 0.5s;
+    }
+
+    .button:hover::before {
+      left: 100%;
     }
 
     .hidden {
+      display: none;
+    }
+
+    .oculto {
       display: none;
     }
 
@@ -171,7 +218,25 @@
       background: rgba(0, 20, 30, 0.5);
       border: 1px solid var(--neon-blue);
       border-radius: 8px;
+      box-shadow: 0 0 15px var(--neon-blue);
+      position: relative;
       animation: float 4s ease-in-out infinite;
+    }
+
+    .text-display::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        var(--neon-blue),
+        transparent
+      );
+      animation: flicker 2s infinite alternate;
     }
 
     .input-area {
@@ -185,12 +250,13 @@
       color: var(--neon-green);
       margin: 20px 0;
       transition: all 0.3s ease;
+      box-shadow: 0 0 10px var(--neon-purple);
     }
 
     .input-area:focus {
       outline: none;
-      border-color: var(--neon-green);
-      box-shadow: 0 0 15px var(--neon-green);
+      border-color: var(--neon-pink);
+      box-shadow: 0 0 20px var(--neon-pink);
     }
 
     .stats {
@@ -207,6 +273,7 @@
       background: rgba(0, 180, 255, 0.2);
       border-radius: 5px;
       border: 1px solid var(--neon-blue);
+      box-shadow: 0 0 10px rgba(0, 180, 255, 0.3);
     }
 
     .cronometro {
@@ -217,20 +284,62 @@
       border: 2px solid var(--neon-blue);
       border-radius: 15px;
       overflow: hidden;
+      position: relative;
+      box-shadow: 0 0 15px var(--neon-blue);
+    }
+
+    .cronometro::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        to right,
+        transparent,
+        rgba(0, 255, 255, 0.3),
+        transparent
+      );
+      pointer-events: none;
     }
 
     .cronometro-barra {
       height: 100%;
-      background: linear-gradient(90deg, var(--neon-blue), var(--neon-green));
+      background: linear-gradient(
+        90deg,
+        var(--neon-pink),
+        var(--neon-blue),
+        var(--neon-green)
+      );
       width: 100%;
       transition: width 1s linear;
+      position: relative;
+    }
+
+    .cronometro-barra::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        to right,
+        transparent,
+        rgba(255, 255, 255, 0.4),
+        transparent
+      );
+      animation: flicker 1.5s infinite alternate;
     }
 
     .feedback {
       margin: 25px 0;
       font-size: 1.3rem;
       font-weight: bold;
+      text-shadow: 0 0 10px currentColor;
       min-height: 30px;
+      animation: float 3s ease-in-out infinite;
     }
 
     .player-list {
@@ -255,7 +364,13 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      box-shadow: 0 0 10px var(--neon-purple);
       transition: all 0.3s ease;
+    }
+
+    .player-list div:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 0 20px var(--neon-purple);
     }
 
     .player-list img {
@@ -271,6 +386,13 @@
       text-align: center;
       padding: 40px;
       background: rgba(5, 5, 20, 0.95);
+      border: 2px solid var(--neon-pink);
+      animation: pulse 3s infinite;
+    }
+
+    #resultadoFinal h2 {
+      margin-bottom: 30px;
+      font-size: 2rem;
     }
 
     #ranking {
@@ -291,13 +413,69 @@
       border: 1px solid var(--neon-green);
       border-radius: 10px;
       padding: 15px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #ranking div::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        to bottom right,
+        transparent,
+        transparent,
+        transparent,
+        rgba(0, 255, 156, 0.1),
+        transparent
+      );
+      transform: rotate(30deg);
+    }
+
+    #ranking div:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px var(--neon-green);
+    }
+
+    #ranking div:nth-child(1) {
+      background: rgba(255, 215, 0, 0.1);
+      border-color: gold;
+      box-shadow: 0 0 20px gold;
+    }
+
+    #ranking div:nth-child(2) {
+      background: rgba(192, 192, 192, 0.1);
+      border-color: silver;
+      box-shadow: 0 0 15px silver;
+    }
+
+    #ranking div:nth-child(3) {
+      background: rgba(205, 127, 50, 0.1);
+      border-color: #cd7f32;
+      box-shadow: 0 0 10px #cd7f32;
     }
 
     #ranking img {
       width: 50px;
       height: 50px;
       border-radius: 50%;
-      border: 2px solid var(--neon-green);
+      border: 2px solid;
+    }
+
+    #ranking div:nth-child(1) img {
+      border-color: gold;
+    }
+
+    #ranking div:nth-child(2) img {
+      border-color: silver;
+    }
+
+    #ranking div:nth-child(3) img {
+      border-color: #cd7f32;
     }
 
     /* Responsividade */
@@ -346,8 +524,8 @@
 
 <!-- SALA -->
 <div class="container hidden" id="sala">
-  <h2>SALA: <span id="salaIdTexto">...</span></h2>
-  <div class="stats">VOCÊ É: <strong><span id="nomeJogador">...</span></strong></div>
+  <h2>SALA: <span id="salaIdTexto" class="glitch">...</span></h2>
+  <div class="stats"><strong><span id="nomeJogador">...</span></strong></div>
   <div class="player-list" id="jogadoresLista"></div>
   <button class="button hidden" id="comecarJogoBtn" onclick="iniciarJogo()">COMEÇAR JOGO</button>
   <button class="button" onclick="voltarMenu()">VOLTAR AO MENU</button>
@@ -355,7 +533,7 @@
 
 <!-- JOGO -->
 <div class="container hidden" id="jogo">
-  <h2>SALA: <span id="salaIdTexto2">...</span></h2>
+  <h2>SALA: <span id="salaIdTexto2" class="glitch">...</span></h2>
   <div class="stats">
     <span>RODADA: <span id="rodada">1</span>/5</span>
     <span>PONTUAÇÃO: <span id="pontuacao">0</span></span>
@@ -368,7 +546,7 @@
 </div>
 
 <!-- RESULTADO -->
-<div id="resultadoFinal" class="container hidden">
+<div id="resultadoFinal" class="container oculto">
   <h2>🏁 RESULTADO FINAL 🏁</h2>
   <div id="ranking"></div>
   <button class="button" onclick="voltarAoMenu()">VOLTAR AO MENU</button>
@@ -395,7 +573,7 @@
   const nomeUsuario = localStorage.getItem("usuario") || "Jogador";
   const avatarUsuario = localStorage.getItem("avatar") || "img/img1.png";
 
-  let frasesDisponiveis = [
+  const frases = [
     "A COMUNICAÇÃO EFICAZ É A BASE DE QUALQUER RELAÇÃO BEM-SUCEDIDA.",
     "FALAR É UMA NECESSIDADE, ESCUTAR É UMA ARTE.",
     "PALAVRAS SÃO PODEROSAS, USE-AS COM SABEDORIA.",
@@ -427,8 +605,7 @@
       host: jogadorId,
       status: "ESPERANDO",
       rodada: 0,
-      frase: "",
-      frasesUsadas: []
+      frase: ""
     });
 
     iniciarSala();
@@ -463,8 +640,6 @@
 
     salaRef = db.collection("salas").doc(salaId);
     salaRef.onSnapshot(doc => {
-      if (!doc.exists) return;
-
       const data = doc.data();
       jogadores = data.jogadores;
 
@@ -493,42 +668,16 @@
     });
   }
 
-  async function iniciarJogo() {
-    const doc = await salaRef.get();
-    const frasesUsadas = doc.data().frasesUsadas || [];
-    
-    let frasesDisponiveis = [
-      "A COMUNICAÇÃO EFICAZ É A BASE DE QUALQUER RELAÇÃO BEM-SUCEDIDA.",
-      "FALAR É UMA NECESSIDADE, ESCUTAR É UMA ARTE.",
-      "PALAVRAS SÃO PODEROSAS, USE-AS COM SABEDORIA.",
-      "A CLAREZA NA FALA EVITA RUÍDOS NA ESCUTA.",
-      "EMPATIA É ENTENDER ANTES DE RESPONDER.",
-      "O SILÊNCIO TAMBÉM COMUNICA.",
-      "BOAS CONVERSAS GERAM GRANDES IDEIAS.",
-      "CONEXÕES VERDADEIRAS NASCEM DE PALAVRAS SINCERAS.",
-      "A VOZ CALMA ACALMA ATÉ O CAOS.",
-      "SER OUVIDO É TÃO IMPORTANTE QUANTO SER ENTENDIDO."
-    ].filter(frase => !frasesUsadas.includes(frase));
-
-    if (frasesDisponiveis.length === 0) {
-      frasesDisponiveis = [
-        "A COMUNICAÇÃO EFICAZ É A BASE DE QUALQUER RELAÇÃO BEM-SUCEDIDA.",
-        "FALAR É UMA NECESSIDADE, ESCUTAR É UMA ARTE.",
-        "PALAVRAS SÃO PODEROSAS, USE-AS COM SABEDORIA."
-      ];
-    }
-
-    const frase = frasesDisponiveis[Math.floor(Math.random() * frasesDisponiveis.length)];
-    
-    await salaRef.update({
+  function iniciarJogo() {
+    const frase = frases[Math.floor(Math.random() * frases.length)];
+    salaRef.update({
       status: "JOGANDO",
       frase: frase,
-      rodada: 1,
-      frasesUsadas: [...frasesUsadas, frase]
+      rodada: 1
     });
   }
 
-  async function iniciarRodada(frase, rodada) {
+  function iniciarRodada(frase, rodada) {
     document.getElementById("entrada").value = "";
     document.getElementById("entrada").disabled = false;
     document.getElementById("entrada").focus();
@@ -555,63 +704,35 @@
     // Muda a cor conforme o tempo diminui
     const barra = document.getElementById("barraTempo");
     if (percentual > 50) {
-      barra.style.background = "linear-gradient(90deg, var(--neon-blue), var(--neon-green))";
+      barra.style.background = "linear-gradient(90deg, var(--neon-pink), var(--neon-blue), var(--neon-green))";
     } else if (percentual > 20) {
-      barra.style.background = "linear-gradient(90deg, var(--neon-green), yellow)";
+      barra.style.background = "linear-gradient(90deg, var(--neon-blue), var(--neon-green), yellow)";
     } else {
-      barra.style.background = "linear-gradient(90deg, yellow, red)";
+      barra.style.background = "linear-gradient(90deg, var(--neon-green), yellow, red)";
     }
   }
 
-  async function fimDoTempo() {
+  function fimDoTempo() {
     clearInterval(cronometroInterval);
     document.getElementById("entrada").disabled = true;
     document.getElementById("feedback").textContent = "⏰ TEMPO ESGOTADO!";
     document.getElementById("feedback").style.color = "red";
     somErro.play();
     
-    if (host) {
-      if (rodadaAtual < maxRodadas) {
-        const doc = await salaRef.get();
-        const frasesUsadas = doc.data().frasesUsadas || [];
-        
-        let frasesDisponiveis = [
-          "A COMUNICAÇÃO EFICAZ É A BASE DE QUALQUER RELAÇÃO BEM-SUCEDIDA.",
-          "FALAR É UMA NECESSIDADE, ESCUTAR É UMA ARTE.",
-          "PALAVRAS SÃO PODEROSAS, USE-AS COM SABEDORIA.",
-          "A CLAREZA NA FALA EVITA RUÍDOS NA ESCUTA.",
-          "EMPATIA É ENTENDER ANTES DE RESPONDER.",
-          "O SILÊNCIO TAMBÉM COMUNICA.",
-          "BOAS CONVERSAS GERAM GRANDES IDEIAS.",
-          "CONEXÕES VERDADEIRAS NASCEM DE PALAVRAS SINCERAS.",
-          "A VOZ CALMA ACALMA ATÉ O CAOS.",
-          "SER OUVIDO É TÃO IMPORTANTE QUANTO SER ENTENDIDO."
-        ].filter(frase => !frasesUsadas.includes(frase));
-
-        if (frasesDisponiveis.length === 0) {
-          frasesDisponiveis = [
-            "A COMUNICAÇÃO EFICAZ É A BASE DE QUALQUER RELAÇÃO BEM-SUCEDIDA.",
-            "FALAR É UMA NECESSIDADE, ESCUTAR É UMA ARTE.",
-            "PALAVRAS SÃO PODEROSAS, USE-AS COM SABEDORIA."
-          ];
-        }
-
-        const frase = frasesDisponiveis[Math.floor(Math.random() * frasesDisponiveis.length)];
-        
-        setTimeout(async () => {
-          await salaRef.update({
-            rodada: rodadaAtual + 1,
-            frase: frase,
-            frasesUsadas: [...frasesUsadas, frase]
-          });
-        }, 2000);
-      } else {
-        await salaRef.update({ status: "FINALIZADO" });
-      }
+    if (host && rodadaAtual < maxRodadas) {
+      setTimeout(() => {
+        const frase = frases[Math.floor(Math.random() * frases.length)];
+        salaRef.update({
+          rodada: rodadaAtual + 1,
+          frase: frase
+        });
+      }, 2000);
+    } else if (host && rodadaAtual >= maxRodadas) {
+      salaRef.update({ status: "FINALIZADO" });
     }
   }
 
-  document.getElementById("entrada").addEventListener("input", async () => {
+  document.getElementById("entrada").addEventListener("input", () => {
     const entrada = document.getElementById("entrada").value.toUpperCase();
     if (entrada === fraseAtual) {
       clearInterval(cronometroInterval);
@@ -625,51 +746,32 @@
       document.getElementById("entrada").disabled = true;
       somAcerto.play();
 
+      // Efeito visual de acerto
+      const container = document.getElementById("jogo");
+      container.style.boxShadow = "0 0 30px var(--neon-green)";
+      setTimeout(() => {
+        container.style.boxShadow = "0 0 20px var(--neon-green)";
+      }, 500);
+
       // Atualizar pontuação no servidor
-      const doc = await salaRef.get();
-      const jogadores = doc.data().jogadores;
-      const atualizados = jogadores.map(j =>
-        j.nome === jogadorId ? { ...j, pontos: pontuacao } : j
-      );
-      await salaRef.update({ jogadores: atualizados });
+      salaRef.get().then(doc => {
+        const jogadores = doc.data().jogadores;
+        const atualizados = jogadores.map(j =>
+          j.nome === jogadorId ? { ...j, pontos: pontuacao } : j
+        );
+        salaRef.update({ jogadores: atualizados });
+      });
 
-      if (host) {
-        if (rodadaAtual < maxRodadas) {
-          const frasesUsadas = doc.data().frasesUsadas || [];
-          
-          let frasesDisponiveis = [
-            "A COMUNICAÇÃO EFICAZ É A BASE DE QUALQUER RELAÇÃO BEM-SUCEDIDA.",
-            "FALAR É UMA NECESSIDADE, ESCUTAR É UMA ARTE.",
-            "PALAVRAS SÃO PODEROSAS, USE-AS COM SABEDORIA.",
-            "A CLAREZA NA FALA EVITA RUÍDOS NA ESCUTA.",
-            "EMPATIA É ENTENDER ANTES DE RESPONDER.",
-            "O SILÊNCIO TAMBÉM COMUNICA.",
-            "BOAS CONVERSAS GERAM GRANDES IDEIAS.",
-            "CONEXÕES VERDADEIRAS NASCEM DE PALAVRAS SINCERAS.",
-            "A VOZ CALMA ACALMA ATÉ O CAOS.",
-            "SER OUVIDO É TÃO IMPORTANTE QUANTO SER ENTENDIDO."
-          ].filter(frase => !frasesUsadas.includes(frase));
-
-          if (frasesDisponiveis.length === 0) {
-            frasesDisponiveis = [
-              "A COMUNICAÇÃO EFICAZ É A BASE DE QUALQUER RELAÇÃO BEM-SUCEDIDA.",
-              "FALAR É UMA NECESSIDADE, ESCUTAR É UMA ARTE.",
-              "PALAVRAS SÃO PODEROSAS, USE-AS COM SABEDORIA."
-            ];
-          }
-
-          const frase = frasesDisponiveis[Math.floor(Math.random() * frasesDisponiveis.length)];
-          
-          setTimeout(async () => {
-            await salaRef.update({
-              rodada: rodadaAtual + 1,
-              frase: frase,
-              frasesUsadas: [...frasesUsadas, frase]
-            });
-          }, 2000);
-        } else {
-          await salaRef.update({ status: "FINALIZADO" });
-        }
+      if (host && rodadaAtual < maxRodadas) {
+        setTimeout(() => {
+          const frase = frases[Math.floor(Math.random() * frases.length)];
+          salaRef.update({
+            rodada: rodadaAtual + 1,
+            frase: frase
+          });
+        }, 2000);
+      } else if (host && rodadaAtual >= maxRodadas) {
+        salaRef.update({ status: "FINALIZADO" });
       }
     }
   });
@@ -687,8 +789,18 @@
       </div>
     `).join("");
 
-    resultadoDiv.classList.remove("hidden");
+    resultadoDiv.classList.remove("oculto");
     somFim.play();
+    
+    // Efeitos de confete para os 3 primeiros
+    if (ordenado.length > 0) {
+      setTimeout(() => {
+        const primeiro = rankingDiv.children[0];
+        if (primeiro) {
+          primeiro.style.animation = "float 2s ease-in-out infinite";
+        }
+      }, 500);
+    }
   }
 
   function voltarMenu() {
