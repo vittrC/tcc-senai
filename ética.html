@@ -7,8 +7,59 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    .btn-exit {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      background: transparent;
+      border: none;
+      color: #00ff9c;
+      font-size: 1.5rem;
+      cursor: pointer;
+      z-index: 10;
+      transition: color 0.2s;
+    }
+    .btn-exit:hover {
+      color: #00ccff;
+    }
+    .icon-number {
+      box-shadow: 0 0 8px #00ff9c;
+    }
+    .simple-score {
+      margin-top: 20px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .simple-score svg {
+      vertical-align: middle;
+      position: relative;
+      top: 6px;
+    }
+    .reset-confirm {
+      margin-top: 10px;
+      background: #222;
+      color: #fff;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    .reset-options {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 10px;
+    }
+    .hidden { display: none; }
+  </style>
 </head>
 <body>
+
+<!-- Botão de saída SVG -->
+<button class="btn-exit" onclick="window.location.href='central.html'" title="Sair para Central">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+    <path d="M16 17l5-5m0 0l-5-5m5 5H9m4 9a9 9 0 1 1 0-18" stroke="#00ff9c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</button>
 
 <div class="container" id="menu">
   <h1>Teste de Ética no Ambiente de Trabalho</h1>
@@ -18,8 +69,11 @@
   
   <div class="simple-score">
     <p>
-    <span class="material-symbols-outlined" style="font-size: 27px; color: #00ff9c; position: relative; top: 6px;">emoji_events</span>
-    Recorde: <span id="highScoreValue">0</span>
+      <!-- Troféu SVG -->
+      <svg width="27" height="27" viewBox="0 0 24 24" fill="none">
+        <path d="M12 17v4m-4 0h8m-8 0a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4m-8 0h8" stroke="#00ff9c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Recorde: <span id="highScoreValue">0</span>
     </p>
     <p>Última pontuação: <span id="lastScoreValue">0</span></p>
     <button id="resetScoreBtn" class="reset-btn" onclick="showResetConfirmation()">Resetar Pontuação</button>
@@ -30,10 +84,7 @@
         <button class="reset-btn" onclick="hideResetConfirmation()">Não</button>
       </div>
     </div>
-    <a href="central.html" class="btn1">
-    <i class="fas fa-right-from-bracket"></i></a>
   </div>
-  
 </div>
 
 <div class="container hidden" id="instructions">
@@ -46,22 +97,28 @@
 </div>
 
 <div class="container hidden" id="game">
-  <h2><span class="icon-number" id="questionNumber">1</span><span id="questionTitle">Questão</span></h2>
+  <h2>
+    <span class="icon-number" id="questionNumber" style="display:inline-block; width:38px; height:38px; border-radius:50%; background:#00ff9c; color:#000; font-weight:bold; font-size:1.3em; text-align:center; line-height:38px; margin-right:10px;"></span>
+    <span id="questionTitle">Questão</span>
+  </h2>
   <img id="questionGif" src="" alt="GIF da Questão">
   <p id="questionText">Texto da pergunta...</p>
   <div id="answers"></div>
 </div>
 
 <div class="container hidden" id="result">
-<h2>
-    <span class="material-symbols-outlined" style="font-size: 37px; color: #00ff9c; position: relative; top: 8px;">sports_score</span>
+  <h2>
+    <!-- SVG medalha -->
+    <svg width="37" height="37" viewBox="0 0 24 24" fill="none" style="vertical-align:middle; position:relative; top:8px;">
+      <circle cx="12" cy="12" r="10" stroke="#00ff9c" stroke-width="2" fill="none"/>
+      <path d="M12 7v5l3 3" stroke="#00ff9c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
     Resultado Final:
-</h2>  
+  </h2>  
   <div style="display: flex; align-items: center; justify-content: center; gap: 30px; margin: 20px 0;">
     <div style="text-align: center;">
       <img id="resultAvatar" src="img/img1.png" style="width: 120px; height: 120px; border-radius: 50%; border: 3px solid #00ff00; box-shadow: 0 0 20px #00ff00;">
     </div>
-    
     <div style="text-align: center;">
       <div style="font-size: 2.5em; color: #ffff00; text-shadow: 0 0 10px #ffff00; margin-bottom: 10px;">
         <span id="finalScoreValue">0</span>/<span id="totalPossibleScore">3000</span>
@@ -71,13 +128,10 @@
       </div>
     </div>
   </div>
-
   <div id="scoreMeter" style="height: 20px; background: rgba(0, 255, 0, 0.2); border-radius: 10px; margin: 20px 0; overflow: hidden;">
     <div id="scoreProgress" style="height: 100%; background: linear-gradient(90deg, #00ff00, #00ff88); width: 0%; transition: width 1s ease;"></div>
   </div>
-
   <p id="finalMessage" style="font-size: 1.3em; margin: 20px 0; min-height: 60px;"></p>
-  
   <div style="margin-top: 30px;">
     <button class="btn" onclick="backToMenu()">Voltar ao Menu</button>
   </div>
@@ -379,6 +433,7 @@ function showQuestion() {
   }
 
   const question = questions[currentQuestion];
+  // Numeração estilizada
   document.getElementById("questionNumber").textContent = currentQuestion + 1;
   document.getElementById("questionTitle").textContent = question.title;
   document.getElementById("questionText").textContent = question.text;

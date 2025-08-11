@@ -178,38 +178,32 @@
       const conteudo = document.getElementById("cursosConteudo");
       conteudo.innerHTML = "Carregando...";
 
-      db.collection("pontuacoes").where("usuario", "==", nome).get().then(snapshot => {
-        if (snapshot.empty) {
-          conteudo.innerHTML = "<p>Nenhum curso registrado para este usuário.</p>";
-        } else {
+      // Busca os acessos do usuário
+      db.collection("usuarios").where("nome", "==", nome).limit(1).get().then(snapshot => {
+        let acessosComunicacao = 0;
+        if (!snapshot.empty) {
+          const data = snapshot.docs[0].data();
+          acessosComunicacao = data.acessos_comunicacao || 0;
+        }
+
+        db.collection("pontuacoes").where("usuario", "==", nome).get().then(snapshot2 => {
           let html = "<table style='width:100%;'><tr><th>Curso</th><th>Pontuação</th></tr>";
           let cursosContagem = {};
-          snapshot.forEach(doc => {
+          snapshot2.forEach(doc => {
             const data = doc.data();
-            html += `<tr><td>${data.curso}</td><td>${data.pontuacao}</td></tr>`;
+            html += `<tr><td>${data.curso}</td><td>${data.pontuacao || "-"}</td></tr>`;
             cursosContagem[data.curso] = (cursosContagem[data.curso] || 0) + 1;
           });
           html += "</table>";
 
-          // Descobrir o curso mais acessado
-          let maisAcessado = "";
-          let maxAcessos = 0;
-          for (const curso in cursosContagem) {
-            if (cursosContagem[curso] > maxAcessos) {
-              maxAcessos = cursosContagem[curso];
-              maisAcessado = curso;
-            }
-          }
-          if (maisAcessado) {
-            html += `<p><b>Curso mais acessado:</b> ${maisAcessado} (${maxAcessos}x)</p>`;
-          }
-          conteudo.innerHTML = html;
-        }
-      }).catch(() => {
-        conteudo.innerHTML = "<p>Erro ao buscar cursos.</p>";
-      });
+          html += `<p><b>Entradas no curso Comunicação:</b> ${acessosComunicacao}</p>`;
 
-      document.getElementById("cursosUsuario").style.display = "block";
+          conteudo.innerHTML = html;
+
+          // EXIBE O MODAL DE CURSOS DO USUÁRIO
+          document.getElementById("cursosUsuario").style.display = "block";
+        });
+      });
     }
 
     function fecharCursos() {

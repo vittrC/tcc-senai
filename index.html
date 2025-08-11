@@ -329,12 +329,33 @@
         padding: 15px;
       }
     }
+
+    .btn-exit {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      background: transparent;
+      border: none;
+      color: var(--neon-green);
+      font-size: 1.5rem;
+      cursor: pointer;
+      z-index: 10;
+      transition: color 0.2s;
+    }
+    .btn-exit:hover {
+      color: var(--neon-blue);
+    }
   </style>
 </head>
 <body>
 
 <!-- MENU -->
 <div class="container" id="menu">
+  <button class="button btn-exit" onclick="voltarCentral()" title="Sair para Central">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;">
+      <path d="M16 17l5-5m0 0l-5-5m5 5H9m4 9a9 9 0 1 1 0-18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
   <h1>COMUNICAÇÃO</h1>
   <button class="button" onclick="criarSala()">CRIAR SALA</button>
   <button class="button" onclick="mostrarEntrada()">ENTRAR EM SALA</button>
@@ -346,6 +367,11 @@
 
 <!-- SALA -->
 <div class="container hidden" id="sala">
+  <button class="button btn-exit" onclick="voltarCentral()" title="Sair para Central">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;">
+      <path d="M16 17l5-5m0 0l-5-5m5 5H9m4 9a9 9 0 1 1 0-18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
   <h2>SALA: <span id="salaIdTexto">...</span></h2>
   <div class="stats">VOCÊ É: <strong><span id="nomeJogador">...</span></strong></div>
   <div class="player-list" id="jogadoresLista"></div>
@@ -355,6 +381,11 @@
 
 <!-- JOGO -->
 <div class="container hidden" id="jogo">
+  <button class="button btn-exit" onclick="voltarCentral()" title="Sair para Central">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;">
+      <path d="M16 17l5-5m0 0l-5-5m5 5H9m4 9a9 9 0 1 1 0-18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
   <h2>SALA: <span id="salaIdTexto2">...</span></h2>
   <div class="stats">
     <span>RODADA: <span id="rodada">1</span>/5</span>
@@ -362,13 +393,18 @@
   </div>
   <div class="text-display" id="fraseDisplay"></div>
   <div class="cronometro"><div class="cronometro-barra" id="barraTempo"></div></div>
-  <input type="text" class="input-area" id="entrada" placeholder="DIGITE AQUI..." disabled />
+  <input type="text" class="input-area" id="entrada" placeholder="DIGITE AQUI..." disabled autocomplete="off" />
   <div class="feedback" id="feedback"></div>
   <button class="button" onclick="voltarMenu()">VOLTAR AO MENU</button>
 </div>
 
 <!-- RESULTADO -->
 <div id="resultadoFinal" class="container hidden">
+  <button class="button btn-exit" onclick="voltarCentral()" title="Sair para Central">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;">
+      <path d="M16 17l5-5m0 0l-5-5m5 5H9m4 9a9 9 0 1 1 0-18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
   <h2>🏁 RESULTADO FINAL 🏁</h2>
   <div id="ranking"></div>
   <button class="button" onclick="voltarAoMenu()">VOLTAR AO MENU</button>
@@ -394,6 +430,25 @@
 
   const nomeUsuario = localStorage.getItem("usuario") || "Jogador";
   const avatarUsuario = localStorage.getItem("avatar") || "img/img1.png";
+
+  // Registrar acesso ao curso de comunicação
+  const usuarioRef = db.collection("usuarios").where("nome", "==", nomeUsuario).limit(1);
+  usuarioRef.get().then(snapshot => {
+    if (!snapshot.empty) {
+      const docRef = snapshot.docs[0].ref;
+      docRef.update({
+        acessos_comunicacao: firebase.firestore.FieldValue.increment(1)
+      });
+    }
+  });
+
+  // Registrar acesso global para ranking de cursos
+  db.collection("pontuacoes").add({
+    usuario: nomeUsuario,
+    curso: "Comunicação",
+    data: new Date().toISOString(),
+    avatar: avatarUsuario
+  });
 
   let frasesDisponiveis = [
     "A COMUNICAÇÃO EFICAZ É A BASE DE QUALQUER RELAÇÃO BEM-SUCEDIDA.",
@@ -528,6 +583,13 @@
     });
   }
 
+  // Bloqueia copiar/colar no campo de resposta
+  document.getElementById("entrada").addEventListener("paste", e => e.preventDefault());
+  document.getElementById("entrada").addEventListener("copy", e => e.preventDefault());
+
+  // Controle para evitar múltiplos acertos por rodada
+  let rodadaRespondida = false;
+
   async function iniciarRodada(frase, rodada) {
     document.getElementById("entrada").value = "";
     document.getElementById("entrada").disabled = false;
@@ -537,7 +599,8 @@
     document.getElementById("feedback").textContent = "";
     fraseAtual = frase;
     rodadaAtual = rodada;
-    
+    rodadaRespondida = false; // Reset flag
+
     tempoRestante = tempoMaximo;
     atualizarBarraTempo();
     clearInterval(cronometroInterval);
@@ -612,8 +675,10 @@
   }
 
   document.getElementById("entrada").addEventListener("input", async () => {
+    if (rodadaRespondida) return; // Só permite pontuar uma vez por rodada
     const entrada = document.getElementById("entrada").value.toUpperCase();
     if (entrada === fraseAtual) {
+      rodadaRespondida = true;
       clearInterval(cronometroInterval);
       const tempoGasto = tempoMaximo - tempoRestante;
       const wpm = Math.round((fraseAtual.split(" ").length / tempoGasto) * 60);
@@ -633,10 +698,10 @@
       );
       await salaRef.update({ jogadores: atualizados });
 
+      // Avança a rodada localmente para evitar múltiplos acertos
       if (host) {
         if (rodadaAtual < maxRodadas) {
           const frasesUsadas = doc.data().frasesUsadas || [];
-          
           let frasesDisponiveis = [
             "A COMUNICAÇÃO EFICAZ É A BASE DE QUALQUER RELAÇÃO BEM-SUCEDIDA.",
             "FALAR É UMA NECESSIDADE, ESCUTAR É UMA ARTE.",
@@ -659,14 +724,14 @@
           }
 
           const frase = frasesDisponiveis[Math.floor(Math.random() * frasesDisponiveis.length)];
-          
+
           setTimeout(async () => {
             await salaRef.update({
               rodada: rodadaAtual + 1,
               frase: frase,
               frasesUsadas: [...frasesUsadas, frase]
             });
-          }, 2000);
+          }, 1500); // Tempo menor para avançar mais rápido
         } else {
           await salaRef.update({ status: "FINALIZADO" });
         }
@@ -697,6 +762,10 @@
 
   function voltarAoMenu() {
     location.reload();
+  }
+
+  function voltarCentral() {
+    window.location.href = "central.html";
   }
 </script>
 
