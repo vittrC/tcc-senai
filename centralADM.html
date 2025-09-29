@@ -166,13 +166,11 @@
       }
     }
 
-    // Fechar formulário
     function fecharFormulario() {
       document.getElementById("formUsuario").style.display = "none";
       window.usuarioEditando = null;
     }
 
-    // Ver cursos feitos pelo usuário (exemplo: buscar pontuações)
     function verCursos(nome) {
       document.getElementById("cursosTitulo").innerText = `Cursos de ${nome}`;
       const conteudo = document.getElementById("cursosConteudo");

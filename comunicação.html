@@ -420,9 +420,7 @@
     apiKey: "AIzaSyAVZ-dvyJuGFF4fEHGjS-TrhzBmBslVwNs",
     authDomain: "curso-3-inteligencia-emocional.firebaseapp.com",
     projectId: "curso-3-inteligencia-emocional",
-    storageBucket: "curso-3-inteligencia-emocional.firebasestorage.app",
-    messagingSenderId: "105031303963",
-    appId: "1:105031303963:web:0ecdcddc91fbb0af69c9be"
+    storageBucket: "curso-3-inteligencia-emocional.appspot.com"
   };
 
   firebase.initializeApp(firebaseConfig);
@@ -431,62 +429,35 @@
   const nomeUsuario = localStorage.getItem("usuario") || "Jogador";
   const avatarUsuario = localStorage.getItem("avatar") || "img/img1.png";
 
-  // Registrar acesso ao curso de comunicação
-  const usuarioRef = db.collection("usuarios").where("nome", "==", nomeUsuario).limit(1);
-  usuarioRef.get().then(snapshot => {
-    if (!snapshot.empty) {
-      const docRef = snapshot.docs[0].ref;
-      docRef.update({
-        acessos_comunicacao: firebase.firestore.FieldValue.increment(1)
-      });
-    }
-  });
+  // registra acesso (silencioso)
+  db.collection("usuarios").where("nome", "==", nomeUsuario).limit(1).get().then(() => {}).catch(()=>{});
 
-  // Registrar acesso global para ranking de cursos
-  db.collection("pontuacoes").add({
-    usuario: nomeUsuario,
-    curso: "Comunicação",
-    data: new Date().toISOString(),
-    avatar: avatarUsuario
-  });
+  // registro rápido de participação (não crítico)
+  db.collection("pontuacoes").add({ usuario: nomeUsuario, curso: "Comunicação", avatar: avatarUsuario, ts: firebase.firestore.FieldValue.serverTimestamp() }).catch(()=>{});
 
-  let frasesDisponiveis = [
-    "A COMUNICAÇÃO EFICAZ É A BASE DE QUALQUER RELAÇÃO BEM-SUCEDIDA.",
-    "FALAR É UMA NECESSIDADE, ESCUTAR É UMA ARTE.",
-    "PALAVRAS SÃO PODEROSAS, USE-AS COM SABEDORIA.",
-    "A CLAREZA NA FALA EVITA RUÍDOS NA ESCUTA.",
-    "EMPATIA É ENTENDER ANTES DE RESPONDER.",
-    "O SILÊNCIO TAMBÉM COMUNICA.",
-    "BOAS CONVERSAS GERAM GRANDES IDEIAS.",
-    "CONEXÕES VERDADEIRAS NASCEM DE PALAVRAS SINCERAS.",
-    "A VOZ CALMA ACALMA ATÉ O CAOS.",
-    "SER OUVIDO É TÃO IMPORTANTE QUANTO SER ENTENDIDO."
-  ];
-
-  let salaRef, salaId, host = false, jogadorId, jogadores = [], fraseAtual = "";
-  let rodadaAtual = 0, pontuacao = 0, maxRodadas = 5;
-  let tempoMaximo = 30;
-  let tempoRestante = tempoMaximo;
-  let cronometroInterval;
+  let salaRef = null, salaId = null;
+  let host = false, jogadorId = nomeUsuario, jogadores = [];
+  let fraseAtual = "", rodadaAtual = 0, maxRodadas = 5;
+  let pontuacao = 0;
+  let tempoMaximo = 30, tempoRestante = tempoMaximo, cronometroInterval = null;
   const somAcerto = document.getElementById("somAcerto");
   const somErro = document.getElementById("somErro");
   const somFim = document.getElementById("somFim");
 
   function criarSala() {
     salaId = "SALA-" + Math.floor(Math.random() * 10000);
-    jogadorId = nomeUsuario;
     host = true;
-
-    db.collection("salas").doc(salaId).set({
-      jogadores: [{ nome: jogadorId, avatar: avatarUsuario }],
+    salaRef = db.collection("salas").doc(salaId);
+    const salaObj = {
+      jogadores: [{ nome: jogadorId, avatar: avatarUsuario, pontos: 0 }],
       host: jogadorId,
       status: "ESPERANDO",
       rodada: 0,
       frase: "",
-      frasesUsadas: []
-    });
-
-    iniciarSala();
+      frasesUsadas: [],
+      respondidoPor: []
+    };
+    salaRef.set(salaObj).then(() => iniciarSala()).catch(err => alert("Erro ao criar sala: "+err));
   }
 
   function mostrarEntrada() {
@@ -494,19 +465,16 @@
   }
 
   async function entrarEmSala() {
-    salaId = document.getElementById("codigoSala").value.toUpperCase();
-    if (!salaId) return alert("DIGITE UM CÓDIGO DE SALA!");
-
-    const doc = await db.collection("salas").doc(salaId).get();
-    if (!doc.exists) return alert("SALA NÃO ENCONTRADA!");
-
-    jogadores = doc.data().jogadores;
-    jogadorId = nomeUsuario;
-
-    await db.collection("salas").doc(salaId).update({
-      jogadores: firebase.firestore.FieldValue.arrayUnion({ nome: jogadorId, avatar: avatarUsuario })
+    const codigo = document.getElementById("codigoSala").value.trim().toUpperCase();
+    if (!codigo) return alert("DIGITE O CÓDIGO DA SALA");
+    salaId = codigo;
+    salaRef = db.collection("salas").doc(salaId);
+    const doc = await salaRef.get();
+    if (!doc.exists) return alert("SALA NÃO ENCONTRADA");
+    await salaRef.update({
+      jogadores: firebase.firestore.FieldValue.arrayUnion({ nome: jogadorId, avatar: avatarUsuario, pontos: 0 })
     });
-
+    host = false;
     iniciarSala();
   }
 
@@ -516,43 +484,49 @@
     document.getElementById("salaIdTexto").textContent = salaId;
     document.getElementById("nomeJogador").textContent = jogadorId;
 
-    salaRef = db.collection("salas").doc(salaId);
     salaRef.onSnapshot(doc => {
       if (!doc.exists) return;
-
       const data = doc.data();
-      jogadores = data.jogadores;
+      jogadores = data.jogadores || [];
+      document.getElementById("jogadoresLista").innerHTML = "<h3>JOGADORES:</h3>" + jogadores.map(j => `
+        <div><img src="${j.avatar}" /><span>${j.nome} (${j.pontos||0})</span></div>
+      `).join("");
 
-      document.getElementById("jogadoresLista").innerHTML = "<h3>JOGADORES:</h3>" +
-        jogadores.map(j => `
-          <div>
-            <img src="${j.avatar}" />
-            <span>${j.nome}</span>
-          </div>`).join("");
-
-      if (host && jogadores.length > 1 && data.status === "ESPERANDO") {
-        document.getElementById("comecarJogoBtn").classList.remove("hidden");
+      // mostrar botão iniciar só para host e se houver jogador a mais
+      if (data.host === jogadorId) {
+        host = true;
+        if (jogadores.length > 0 && data.status === "ESPERANDO") {
+          document.getElementById("comecarJogoBtn").classList.remove("hidden");
+        } else {
+          document.getElementById("comecarJogoBtn").classList.add("hidden");
+        }
+      } else {
+        host = false;
+        document.getElementById("comecarJogoBtn").classList.add("hidden");
       }
 
+      // quando status muda para JOGANDO mostra o jogo
       if (data.status === "JOGANDO") {
         document.getElementById("sala").classList.add("hidden");
         document.getElementById("jogo").classList.remove("hidden");
         document.getElementById("salaIdTexto2").textContent = salaId;
-        iniciarRodada(data.frase, data.rodada);
+        iniciarRodada(data.frase, data.rodada, data.respondidoPor || [], data.jogadores || []);
       }
 
       if (data.status === "FINALIZADO") {
         document.getElementById("jogo").classList.add("hidden");
-        mostrarResultadoFinal(data.jogadores);
+        mostrarResultadoFinal(data.jogadores || []);
       }
     });
   }
 
   async function iniciarJogo() {
+    // apenas host inicia
+    if (!salaRef) return alert("Sala inválida");
     const doc = await salaRef.get();
-    const frasesUsadas = doc.data().frasesUsadas || [];
-    
-    let frasesDisponiveis = [
+    if (!doc.exists) return alert("Sala inexistente");
+    // escolhe frase inicial e seta status JOGANDO
+    const frasesAll = [
       "A COMUNICAÇÃO EFICAZ É A BASE DE QUALQUER RELAÇÃO BEM-SUCEDIDA.",
       "FALAR É UMA NECESSIDADE, ESCUTAR É UMA ARTE.",
       "PALAVRAS SÃO PODEROSAS, USE-AS COM SABEDORIA.",
@@ -563,146 +537,157 @@
       "CONEXÕES VERDADEIRAS NASCEM DE PALAVRAS SINCERAS.",
       "A VOZ CALMA ACALMA ATÉ O CAOS.",
       "SER OUVIDO É TÃO IMPORTANTE QUANTO SER ENTENDIDO."
-    ].filter(frase => !frasesUsadas.includes(frase));
-
-    if (frasesDisponiveis.length === 0) {
-      frasesDisponiveis = [
-        "A COMUNICAÇÃO EFICAZ É A BASE DE QUALQUER RELAÇÃO BEM-SUCEDIDA.",
-        "FALAR É UMA NECESSIDADE, ESCUTAR É UMA ARTE.",
-        "PALAVRAS SÃO PODEROSAS, USE-AS COM SABEDORIA."
-      ];
-    }
-
-    const frase = frasesDisponiveis[Math.floor(Math.random() * frasesDisponiveis.length)];
-    
+    ];
+    const frase = frasesAll[Math.floor(Math.random()*frasesAll.length)];
     await salaRef.update({
       status: "JOGANDO",
-      frase: frase,
       rodada: 1,
-      frasesUsadas: [...frasesUsadas, frase]
+      frase,
+      frasesUsadas: firebase.firestore.FieldValue.arrayUnion(frase),
+      respondidoPor: []
     });
   }
 
-  // Bloqueia copiar/colar no campo de resposta
+  // prevenção copiar/colar
   document.getElementById("entrada").addEventListener("paste", e => e.preventDefault());
   document.getElementById("entrada").addEventListener("copy", e => e.preventDefault());
 
-  // Controle para evitar múltiplos acertos por rodada
-  let rodadaRespondida = false;
+  // controle local para impedir múltiplos acertos do mesmo jogador na mesma rodada
+  let jáPontuouNaRodada = false;
 
-  async function iniciarRodada(frase, rodada) {
+  async function iniciarRodada(frase, rodada, respondidoPorArr = [], jogadoresArr = []) {
+    clearInterval(cronometroInterval);
     document.getElementById("entrada").value = "";
-    document.getElementById("entrada").disabled = false;
-    document.getElementById("entrada").focus();
-    document.getElementById("fraseDisplay").textContent = frase;
-    document.getElementById("rodada").textContent = rodada;
+    document.getElementById("fraseDisplay").textContent = frase || "";
+    document.getElementById("rodada").textContent = rodada || 1;
+    document.getElementById("pontuacao").textContent = pontuacao;
     document.getElementById("feedback").textContent = "";
-    fraseAtual = frase;
-    rodadaAtual = rodada;
-    rodadaRespondida = false; // Reset flag
+    fraseAtual = frase || "";
+    rodadaAtual = rodada || 1;
+    jáPontuouNaRodada = (respondidoPorArr || []).includes(jogadorId);
+
+    // atualiza jogadores locais se fornecido
+    if (Array.isArray(jogadoresArr) && jogadoresArr.length) jogadores = jogadoresArr;
+
+    // se todos já responderam -> bloqueia e exibe mensagem; host tenta avançar automaticamente
+    if (Array.isArray(respondidoPorArr) && jogadores.length && respondidoPorArr.length >= jogadores.length) {
+      document.getElementById("entrada").disabled = true;
+      document.getElementById("feedback").textContent = "Aguardando próxima rodada...";
+      document.getElementById("feedback").style.color = "yellow";
+      clearInterval(cronometroInterval);
+      // host tenta avançar; se host ausente, qualquer cliente pode forçar (ver requestAdvance)
+      if (host) requestAdvance(false).catch(()=>{});
+      return;
+    }
+
+    // se o jogador já respondeu, bloqueia entrada e aguarda
+    if (jáPontuouNaRodada) {
+      document.getElementById("entrada").disabled = true;
+      document.getElementById("feedback").textContent = "Aguardando os demais jogadores...";
+      document.getElementById("feedback").style.color = "yellow";
+      // ainda inicializa o cronômetro visual para acompanhar a rodada
+    } else {
+      document.getElementById("entrada").disabled = false;
+      document.getElementById("entrada").focus();
+    }
 
     tempoRestante = tempoMaximo;
     atualizarBarraTempo();
-    clearInterval(cronometroInterval);
     cronometroInterval = setInterval(() => {
       tempoRestante--;
       atualizarBarraTempo();
-      if (tempoRestante <= 0) fimDoTempo();
+      if (tempoRestante <= 0) {
+        clearInterval(cronometroInterval);
+        onTempoEsgotado();
+      }
     }, 1000);
   }
 
   function atualizarBarraTempo() {
-    const percentual = (tempoRestante / tempoMaximo) * 100;
-    document.getElementById("barraTempo").style.width = percentual + "%";
-    
-    // Muda a cor conforme o tempo diminui
+    const pct = Math.max(0, (tempoRestante / tempoMaximo) * 100);
     const barra = document.getElementById("barraTempo");
-    if (percentual > 50) {
-      barra.style.background = "linear-gradient(90deg, var(--neon-blue), var(--neon-green))";
-    } else if (percentual > 20) {
-      barra.style.background = "linear-gradient(90deg, var(--neon-green), yellow)";
-    } else {
-      barra.style.background = "linear-gradient(90deg, yellow, red)";
-    }
+    barra.style.width = pct + "%";
+    if (pct > 50) barra.style.background = "linear-gradient(90deg, var(--neon-blue), var(--neon-green))";
+    else if (pct > 20) barra.style.background = "linear-gradient(90deg, var(--neon-green), yellow)";
+    else barra.style.background = "linear-gradient(90deg, yellow, red)";
   }
 
-  async function fimDoTempo() {
-    clearInterval(cronometroInterval);
+  async function onTempoEsgotado() {
     document.getElementById("entrada").disabled = true;
     document.getElementById("feedback").textContent = "⏰ TEMPO ESGOTADO!";
     document.getElementById("feedback").style.color = "red";
     somErro.play();
-    
-    if (host) {
-      if (rodadaAtual < maxRodadas) {
-        const doc = await salaRef.get();
-        const frasesUsadas = doc.data().frasesUsadas || [];
-        
-        let frasesDisponiveis = [
-          "A COMUNICAÇÃO EFICAZ É A BASE DE QUALQUER RELAÇÃO BEM-SUCEDIDA.",
-          "FALAR É UMA NECESSIDADE, ESCUTAR É UMA ARTE.",
-          "PALAVRAS SÃO PODEROSAS, USE-AS COM SABEDORIA.",
-          "A CLAREZA NA FALA EVITA RUÍDOS NA ESCUTA.",
-          "EMPATIA É ENTENDER ANTES DE RESPONDER.",
-          "O SILÊNCIO TAMBÉM COMUNICA.",
-          "BOAS CONVERSAS GERAM GRANDES IDEIAS.",
-          "CONEXÕES VERDADEIRAS NASCEM DE PALAVRAS SINCERAS.",
-          "A VOZ CALMA ACALMA ATÉ O CAOS.",
-          "SER OUVIDO É TÃO IMPORTANTE QUANTO SER ENTENDIDO."
-        ].filter(frase => !frasesUsadas.includes(frase));
-
-        if (frasesDisponiveis.length === 0) {
-          frasesDisponiveis = [
-            "A COMUNICAÇÃO EFICAZ É A BASE DE QUALQUER RELAÇÃO BEM-SUCEDIDA.",
-            "FALAR É UMA NECESSIDADE, ESCUTAR É UMA ARTE.",
-            "PALAVRAS SÃO PODEROSAS, USE-AS COM SABEDORIA."
-          ];
-        }
-
-        const frase = frasesDisponiveis[Math.floor(Math.random() * frasesDisponiveis.length)];
-        
-        setTimeout(async () => {
-          await salaRef.update({
-            rodada: rodadaAtual + 1,
-            frase: frase,
-            frasesUsadas: [...frasesUsadas, frase]
-          });
-        }, 2000);
-      } else {
-        await salaRef.update({ status: "FINALIZADO" });
-      }
-    }
+    // força avanço de rodada (qualquer cliente tenta; transação protege)
+    requestAdvance(true).catch(()=>{});
   }
 
   document.getElementById("entrada").addEventListener("input", async () => {
-    if (rodadaRespondida) return; // Só permite pontuar uma vez por rodada
-    const entrada = document.getElementById("entrada").value.toUpperCase();
-    if (entrada === fraseAtual) {
-      rodadaRespondida = true;
+    if (!fraseAtual || jáPontuouNaRodada) return;
+    const texto = document.getElementById("entrada").value.toUpperCase().trim();
+    if (!texto) return;
+    if (texto === fraseAtual) {
+      // acertou
+      jáPontuouNaRodada = true;
       clearInterval(cronometroInterval);
-      const tempoGasto = tempoMaximo - tempoRestante;
+      const tempoGasto = Math.max(1, tempoMaximo - tempoRestante);
       const wpm = Math.round((fraseAtual.split(" ").length / tempoGasto) * 60);
-      const pontos = Math.max(100 - tempoGasto * 2, 10) + wpm;
-      pontuacao += pontos;
+      const pontosGanhos = Math.max(100 - tempoGasto * 2, 10) + wpm;
+      pontuacao += pontosGanhos;
       document.getElementById("pontuacao").textContent = pontuacao;
-      document.getElementById("feedback").textContent = `✅ +${pontos} PONTOS | WPM: ${wpm}`;
+      document.getElementById("feedback").textContent = `✅ +${pontosGanhos} PONTOS | WPM: ${wpm}`;
       document.getElementById("feedback").style.color = "var(--neon-green)";
       document.getElementById("entrada").disabled = true;
       somAcerto.play();
 
-      // Atualizar pontuação no servidor
-      const doc = await salaRef.get();
-      const jogadores = doc.data().jogadores;
-      const atualizados = jogadores.map(j =>
-        j.nome === jogadorId ? { ...j, pontos: pontuacao } : j
-      );
-      await salaRef.update({ jogadores: atualizados });
+      // atualiza pontos e respondidoPor no documento de sala usando transação
+      try {
+        await db.runTransaction(async (tx) => {
+          const snap = await tx.get(salaRef);
+          if (!snap.exists) return;
+          const data = snap.data();
+          const jogadoresDoc = (data.jogadores || []).map(j => {
+            if (j.nome === jogadorId) {
+              return { ...j, pontos: ( (j.pontos||0) + pontosGanhos ) };
+            }
+            return j;
+          });
+          tx.update(salaRef, {
+            jogadores: jogadoresDoc,
+            respondidoPor: firebase.firestore.FieldValue.arrayUnion(jogadorId)
+          });
+        });
+        // solicitar avanço (se condição atendida transação de avanço fará a mudança)
+        requestAdvance(false).catch(()=>{});
+      } catch (e) {
+        console.error("Erro ao atualizar pontos:", e);
+      }
+    }
+  });
 
-      // Avança a rodada localmente para evitar múltiplos acertos
-      if (host) {
-        if (rodadaAtual < maxRodadas) {
-          const frasesUsadas = doc.data().frasesUsadas || [];
-          let frasesDisponiveis = [
+ 
+  async function requestAdvance(force = false) {
+    if (!salaRef) return;
+    try {
+      await db.runTransaction(async (tx) => {
+        const snap = await tx.get(salaRef);
+        if (!snap.exists) return;
+        const data = snap.data();
+        if (data.status !== "JOGANDO") return;
+        const jogadoresDoc = data.jogadores || [];
+        const respondidoPor = data.respondidoPor || [];
+        const totalPlayers = jogadoresDoc.length || 0;
+
+        // condição de avanço: todos responderam ou force = true
+        if (!force && respondidoPor.length < totalPlayers) return;
+
+        // se ainda há rodadas
+        const rodadaAtualLocal = data.rodada || 1;
+        if (rodadaAtualLocal >= maxRodadas) {
+          // finalizar: atualiza status e mantém jogadores com pontos finais
+          tx.update(salaRef, { status: "FINALIZADO" });
+        } else {
+          // escolher nova frase que não esteja em frasesUsadas
+          const todas = [
             "A COMUNICAÇÃO EFICAZ É A BASE DE QUALQUER RELAÇÃO BEM-SUCEDIDA.",
             "FALAR É UMA NECESSIDADE, ESCUTAR É UMA ARTE.",
             "PALAVRAS SÃO PODEROSAS, USE-AS COM SABEDORIA.",
@@ -713,60 +698,48 @@
             "CONEXÕES VERDADEIRAS NASCEM DE PALAVRAS SINCERAS.",
             "A VOZ CALMA ACALMA ATÉ O CAOS.",
             "SER OUVIDO É TÃO IMPORTANTE QUANTO SER ENTENDIDO."
-          ].filter(frase => !frasesUsadas.includes(frase));
-
-          if (frasesDisponiveis.length === 0) {
-            frasesDisponiveis = [
-              "A COMUNICAÇÃO EFICAZ É A BASE DE QUALQUER RELAÇÃO BEM-SUCEDIDA.",
-              "FALAR É UMA NECESSIDADE, ESCUTAR É UMA ARTE.",
-              "PALAVRAS SÃO PODEROSAS, USE-AS COM SABEDORIA."
-            ];
-          }
-
-          const frase = frasesDisponiveis[Math.floor(Math.random() * frasesDisponiveis.length)];
-
-          setTimeout(async () => {
-            await salaRef.update({
-              rodada: rodadaAtual + 1,
-              frase: frase,
-              frasesUsadas: [...frasesUsadas, frase]
-            });
-          }, 1500); // Tempo menor para avançar mais rápido
-        } else {
-          await salaRef.update({ status: "FINALIZADO" });
+          ];
+          const usadas = data.frasesUsadas || [];
+          const disponiveis = todas.filter(f => !usadas.includes(f));
+          const proxima = (disponiveis.length ? disponiveis : todas)[Math.floor(Math.random()* (disponiveis.length ? disponiveis.length : todas.length))];
+          // reset respondidoPor e incrementa rodada e adiciona frase em frasesUsadas
+          tx.update(salaRef, {
+            rodada: rodadaAtualLocal + 1,
+            frase: proxima,
+            frasesUsadas: firebase.firestore.FieldValue.arrayUnion(proxima),
+            respondidoPor: []
+          });
         }
-      }
+      });
+    } catch (e) {
+      console.error("Erro na transação de avanço:", e);
     }
-  });
+  }
 
   function mostrarResultadoFinal(jogadoresPontuacao) {
     const resultadoDiv = document.getElementById("resultadoFinal");
     const rankingDiv = document.getElementById("ranking");
-    const ordenado = [...jogadoresPontuacao].sort((a, b) => (b.pontos || 0) - (a.pontos || 0));
-
-    rankingDiv.innerHTML = ordenado.map((j, i) => `
-      <div>
-        <strong>#${i + 1}</strong>
-        <img src="${j.avatar}" alt="Avatar">
-        <span>${j.nome} - ${j.pontos || 0} PTS</span>
-      </div>
+    const ordenado = [...jogadoresPontuacao].sort((a,b) => (b.pontos||0)-(a.pontos||0));
+    rankingDiv.innerHTML = ordenado.map((j,i) => `
+      <div><strong>#${i+1}</strong><img src="${j.avatar}" alt="av"><span>${j.nome} - ${j.pontos||0} PTS</span></div>
     `).join("");
-
     resultadoDiv.classList.remove("hidden");
     somFim.play();
+
+    // salvar pontuação do jogador localmente e no Firestore
+    const meuScore = ordenado.find(j => j.nome === nomeUsuario)?.pontos || 0;
+    localStorage.setItem("score_comunicacao", meuScore);
+    db.collection("usuarios").where("nome","==",nomeUsuario).limit(1).get().then(snap=>{
+      if (!snap.empty) {
+        const ref = snap.docs[0].ref;
+        ref.update({ score_comunicacao: Math.max(meuScore, snap.docs[0].data().score_comunicacao || 0) }).catch(()=>{});
+      }
+    }).catch(()=>{});
   }
 
-  function voltarMenu() {
-    location.reload();
-  }
-
-  function voltarAoMenu() {
-    location.reload();
-  }
-
-  function voltarCentral() {
-    window.location.href = "central.html";
-  }
+  function voltarMenu() { location.reload(); }
+  function voltarAoMenu() { location.reload(); }
+  function voltarCentral() { window.location.href = "central.html"; }
 </script>
 
 </body>

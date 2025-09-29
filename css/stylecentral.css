@@ -11,6 +11,14 @@ html {
   scroll-behavior: smooth;
 }
 
+.welcome {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+  color: #00ff9c;
+  text-align: left;
+  font-weight: 500;
+}
 
 body {
   font-family: 'Courier New', Courier, monospace;

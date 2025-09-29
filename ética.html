@@ -54,7 +54,6 @@
 </head>
 <body>
 
-<!-- Botão de saída SVG -->
 <button class="btn-exit" onclick="window.location.href='central.html'" title="Sair para Central">
   <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
     <path d="M16 17l5-5m0 0l-5-5m5 5H9m4 9a9 9 0 1 1 0-18" stroke="#00ff9c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -69,9 +68,15 @@
   
   <div class="simple-score">
     <p>
-      <!-- Troféu SVG -->
-      <svg width="27" height="27" viewBox="0 0 24 24" fill="none">
-        <path d="M12 17v4m-4 0h8m-8 0a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4m-8 0h8" stroke="#00ff9c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- Troféu funcional e visível -->
+      <svg width="32" height="32" viewBox="0 0 24 24" style="vertical-align:middle; margin-right:4px;">
+        <g>
+          <ellipse cx="12" cy="21" rx="6" ry="2" fill="#FFD700" opacity="0.7"/>
+          <path d="M7 21v-2a5 5 0 0 1-5-5V7a2 2 0 0 1 2-2h2" fill="none" stroke="#FFD700" stroke-width="2"/>
+          <path d="M17 21v-2a5 5 0 0 0 5-5V7a2 2 0 0 0-2-2h-2" fill="none" stroke="#FFD700" stroke-width="2"/>
+          <rect x="7" y="3" width="10" height="14" rx="5" fill="#FFD700" stroke="#bfa100" stroke-width="2"/>
+          <circle cx="12" cy="10" r="3" fill="#fffde4" stroke="#bfa100" stroke-width="1"/>
+        </g>
       </svg>
       Recorde: <span id="highScoreValue">0</span>
     </p>

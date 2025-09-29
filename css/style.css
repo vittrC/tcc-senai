@@ -23,7 +23,7 @@
       .container {
         background: rgba(0, 0, 0, 0.85);
         border: 2px solid #00ff9c;
-        max-width: 900px; /* padronizado com central de usuários */
+        max-width: 900px; 
         width: 100%;
         padding: 40px 30px;
         border-radius: 10px; /* padronizado */
