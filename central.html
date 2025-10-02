@@ -1,91 +1,207 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Central de Cursos</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VAULT CENTER - Central de usuários</title>
   <link rel="stylesheet" href="css/stylecentral.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+  <link href="https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@100..900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
+  <style>
+    /* Ajustes específicos da página para alinhamento */
+    .grid-layout { max-width:1200px; margin:20px auto; padding:16px; display:grid; grid-template-columns:300px 1fr 320px; gap:18px; align-items:start; }
+    .hidden { display:none !important; }
+    /* modal central */
+    #profileModal .modal-card { background:linear-gradient(180deg,#041817,#062d2a); padding:18px; border-radius:10px; color:inherit; }
+    /* override avatar selector fixed -> keep near profile card */
+    #perfil-icone { position:relative; }
+    #selecao-avatar { position:relative; top:0; right:0; display:flex; flex-wrap:wrap; gap:6px; justify-content:center; padding-top:8px; }
+    /* alinhamento do feed */
+    .post .post-top .meta { align-items:center; }
+    .post .post-actions { justify-content:flex-end; }
+    /* make follow buttons consistent */
+    .followBtn { min-width:90px; }
+    @media (max-width:1000px){ .grid-layout { grid-template-columns:1fr; } .xp-bar{width:100%} }
+  </style>
 </head>
 <body>
-  <div class="container">
+  <div class="grid-layout">
 
-  <div class="welcome" id="welcome-msg">
-    <!-- O nome do usuário será inserido via JS -->
-  </div>
+    <!-- Perfil / Sidebar -->
+    <div class="card profile-card">
+      <div id="perfil-icone" onclick="mostrarOpcoesAvatar()">
+        <img id="avatar-img" src="img/img1.png" alt="Avatar" />
+      </div>
 
-  <!-- Avatar de Perfil -->
-  <div id="perfil-icone" onclick="mostrarOpcoesAvatar()">
-    <img id="avatar-img" src="img/img1.png" alt="Avatar" />
-  </div>
+      <h2 id="profile-name">Usuário</h2>
+      <div class="level-badge" id="profile-level">Nível 1</div>
 
-  <div id="selecao-avatar" class="oculto">
-      <!-- Avatares -->
-      <img src="img/img1.png" class="avatar" onclick="selecionarAvatar('img/img1.png')">
-<img src="img/img2.png" class="avatar" onclick="selecionarAvatar('img/img2.png')">
-<img src="img/img3.png" class="avatar" onclick="selecionarAvatar('img/img3.png')">
-<img src="img/img4.png" class="avatar" onclick="selecionarAvatar('img/img4.png')">
-<img src="img/img5.png" class="avatar" onclick="selecionarAvatar('img/img5.png')">
-<img src="img/img6.png" class="avatar" onclick="selecionarAvatar('img/img6.png')">
-<img src="img/img7.png" class="avatar" onclick="selecionarAvatar('img/img7.png')">
-<img src="img/img8.png" class="avatar" onclick="selecionarAvatar('img/img8.png')">
-<img src="img/img9.png" class="avatar" onclick="selecionarAvatar('img/img9.png')">
-<img src="img/img10.png" class="avatar" onclick="selecionarAvatar('img/img10.png')">
-<img src="img/img11.png" class="avatar" onclick="selecionarAvatar('img/img11.png')">
-<img src="img/img12.png" class="avatar" onclick="selecionarAvatar('img/img12.png')">
+      <div class="xp-bar" title="Progresso para próximo nível">
+        <div class="xp-fill" id="xp-fill" style="width:0%"></div>
+      </div>
+      <div style="margin-top:8px; font-size:13px;" id="xp-text">0 XP • 0/100</div>
 
+      <div class="streak" id="profile-streak">🔥 Streak: 0 dias</div>
+
+      <div class="badges" id="profile-badges">
+        <!-- Badges dinâmicas -->
+      </div>
+
+      <div style="margin-top:12px; display:flex; gap:8px;">
+        <button class="btn" id="edit-profile-btn">Editar</button>
+        <button class="btn btn-ghost" id="logout-btn">Sair</button>
+      </div>
+
+      <hr style="margin:12px 0; border-color:rgba(255,255,255,0.03)">
+
+      <!-- Seletor de avatar: 12 imagens -->
+      <div id="selecao-avatar" style="margin-top:10px; display:none; width:100%;">
+        <div class="avatar-grid">
+          <img src="img/img1.png" class="avatar" onclick="selecionarAvatar('img/img1.png')" alt="a1">
+          <img src="img/img2.png" class="avatar" onclick="selecionarAvatar('img/img2.png')" alt="a2">
+          <img src="img/img3.png" class="avatar" onclick="selecionarAvatar('img/img3.png')" alt="a3">
+          <img src="img/img4.png" class="avatar" onclick="selecionarAvatar('img/img4.png')" alt="a4">
+          <img src="img/img5.png" class="avatar" onclick="selecionarAvatar('img/img5.png')" alt="a5">
+          <img src="img/img6.png" class="avatar" onclick="selecionarAvatar('img/img6.png')" alt="a6">
+          <img src="img/img7.png" class="avatar" onclick="selecionarAvatar('img/img7.png')" alt="a7">
+          <img src="img/img8.png" class="avatar" onclick="selecionarAvatar('img/img8.png')" alt="a8">
+          <img src="img/img9.png" class="avatar" onclick="selecionarAvatar('img/img9.png')" alt="a9">
+          <img src="img/img10.png" class="avatar" onclick="selecionarAvatar('img/img10.png')" alt="a10">
+          <img src="img/img11.png" class="avatar" onclick="selecionarAvatar('img/img11.png')" alt="a11">
+          <img src="img/img12.png" class="avatar" onclick="selecionarAvatar('img/img12.png')" alt="a12">
+        </div>
+      </div>
     </div>
 
-    <!-- Hero -->
-    <section class="hero">
-      <h1>Central de Cursos</h1>
-      <p>Desenvolva suas habilidades éticas corporativas com nossos módulos interativos</p>
-    </section>
+    <!-- Feed / Conteúdo central -->
+    <div>
+      <section class="hero">
+        <h1 style="margin:6px 0 4px 0;">VAULT CENTER</h1>
+        <p style="margin:0 0 6px 0; color:#9eeed1;">Acompanhe seu progresso, compartilhe conquistas e veja o que outros estão aprendendo.</p>
+        <div style="text-align:center; margin-top:10px;">
+          <button id="gotoCourses" class="btn">Ir para os Cursos</button>
+          <button id="openAchievements" class="btn" style="margin-left:10px;">Conquistas</button>
+        </div>
+      </section>
 
-    <!-- Cursos -->
-    <section class="course-grid">
-      <div class="course-card">
-        <span class="material-symbols-outlined">volunteer_activism</span>
-        <h3 class="course-title">Empatia</h3>
-        <p class="course-desc">Aprenda a se colocar no lugar do outro e fortalecer conexões no ambiente de trabalho.</p>
-        <a href="ética.html" class="btn">Acessar Curso</a>
+      <div class="card post-box">
+        <div style="display:flex; gap:10px; align-items:flex-start;">
+          <img id="post-avatar" src="img/img1.png" alt="me" style="width:48px;height:48px;border-radius:50%;border:2px solid #00ff9c;object-fit:cover">
+          <div style="flex:1;">
+            <textarea id="post-text" class="post-textarea" placeholder="Compartilhe uma conquista, dica ou dúvida..."></textarea>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+              <button class="btn" id="post-btn">Publicar</button>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="course-card">
-        <span class="material-symbols-outlined">diversity_3</span>
-        <h3 class="course-title">Trabalho em Equipe</h3>
-        <p class="course-desc">Descubra técnicas para colaboração eficiente e alcance metas em conjunto.</p>
-        <a href="curso2.html" class="btn">Acessar Curso</a>
-      </div>
-      <div class="course-card">
-        <span class="material-symbols-outlined">neurology</span>
-        <h3 class="course-title">Inteligência Emocional</h3>
-        <p class="course-desc">Domine suas emoções e melhore a tomada de decisões em situações desafiadoras.</p>
-        <a href="modulo1.html" class="btn">Acessar Curso</a>
-      </div>
-      <div class="course-card">
-        <span class="material-symbols-outlined">record_voice_over</span>
-        <h3 class="course-title">Comunicação</h3>
-        <p class="course-desc">Aprimore suas habilidades de comunicação para transmitir mensagens claras e eficazes.</p>
-        <a href="comunicação.html" class="btn">Acessar Curso</a>
-      </div>
-    </section>
 
-    <!-- Estatísticas -->
-    <section class="stats-section">
-      <h2 class="stats-title">Sua Pontuação</h2>
-      <div class="stats-chart">
-        <canvas id="scoreChart"></canvas>
+      <div class="feed" id="feed">
+        <!-- Posts carregados dinamicamente -->
       </div>
-    </section>
 
-    <!-- Rodapé -->
-    <footer>
-      <button id="logout-btn" class="btn btn-logout-footer">Logout</button>
-    </footer>
+      <!-- Pontuação geral (gráfico) -->
+      <div class="card" style="margin-top:12px;">
+        <h3>Sua Pontuação</h3>
+        <div style="height:180px;">
+          <canvas id="scoreChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right sidebar: leaderboard e amigos -->
+    <div>
+      <div class="card">
+        <h3>Leaderboard</h3>
+        <ol id="leaderboard" class="leaderboard" style="margin:0;padding:0;"></ol>
+      </div>
+
+      <div class="card" style="margin-top:12px;">
+        <h3>Amigos / Seguindo</h3>
+        <div id="friends" class="friends-list" style="display:flex;flex-direction:column;gap:8px;max-height:260px;overflow:auto;"></div>
+        <hr style="margin:8px 0;border-color:rgba(255,255,255,0.03)">
+        <h4 style="margin:6px 0 8px 0">Adicionar Amigos</h4>
+        <div id="user-suggestions" style="display:flex;flex-direction:column;gap:8px;max-height:240px;overflow:auto"></div>
+      </div>
+
+      <div class="card" style="margin-top:12px;">
+        <h3>Atividades Recentes</h3>
+        <div id="activity-feed" style="font-size:13px;color:#9eeed1; display:flex;flex-direction:column;gap:6px;"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Cursos (grid de baixo permanece) -->
+  <h2 id="cursos" style="text-align:center;margin-top:24px;color:#00ff9c">Cursos Disponíveis</h2>
+  <section class="course-grid">
+    <div class="course-card">
+      <span class="material-symbols-outlined">volunteer_activism</span>
+      <h3 class="course-title">Empatia</h3>
+      <p class="course-desc">Aprenda a se colocar no lugar do outro e fortalecer conexões no ambiente de trabalho.</p>
+      <button class="btn course-btn" data-course="empatia" title="Abrir Empatia">
+      Acessar
+      </button>
+    </div>
+    <div class="course-card">
+      <span class="material-symbols-outlined">diversity_3</span>
+      <h3 class="course-title">Trabalho em Equipe</h3>
+      <p class="course-desc">Descubra técnicas para colaboração eficiente e alcance metas em conjunto.</p>
+      <button class="btn course-btn" data-course="equipe" title="Abrir Trabalho em Equipe">
+        Acessar
+      </button>
+    </div>
+    <div class="course-card">
+      <span class="material-symbols-outlined">neurology</span>
+      <h3 class="course-title">Inteligência Emocional</h3>
+      <p class="course-desc">Domine suas emoções e melhore a tomada de decisões em situações desafiadoras.</p>
+      <button class="btn course-btn" data-course="emocional" title="Abrir Inteligência Emocional">
+        Acessar
+      </button>
+    </div>
+    <div class="course-card">
+      <span class="material-symbols-outlined">record_voice_over</span>
+      <h3 class="course-title">Comunicação</h3>
+      <p class="course-desc">Aprimore suas habilidades de comunicação para transmitir mensagens claras e eficazes.</p>
+      <button class="btn course-btn" data-course="comunicacao" title="Abrir Comunicação">
+        Acessar
+      </button>
+    </div>
+  </section>
+
+  <!-- Modal de Conquistas (fix: garante que botão "Conquistas" funcione) -->
+  <div id="achievementsModal" class="hidden">
+    <div class="ach-card">
+      <button class="btn-exit" style="background:transparent;  border:2px solid var(--neon); color:var(--neon);  padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; box-shadow:0 6px 20px rgba(0,255,156,0.06);" onclick="document.getElementById('achievementsModal').classList.add('hidden')">✕</button>
+      <h3>Conquistas</h3>
+      <div class="ach-grid"></div>
+    </div>
+  </div>
+
+  <!-- NOVA SEÇÃO: Amigos / Seguidores -->
+  <section id="friendsSection" class="friends-section" style="margin-top:40px;">
+    <h2>Amigos / Seguidores</h2>
+    <p style="text-align:center; color:var(--text-soft)">Veja o perfil dos usuários, siga ou pare de seguir diretamente aqui.</p>
+    <div id="usersList" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px; margin-top:20px;"></div>
+  </section>
+
+  <!-- modal simples de perfil -->
+  <div id="profileModal" class="hidden" style="position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:200;">
+    <div class="modal-card">
+      <button onclick="closeProfileModal()" style="float:right" class="btn-exit">X</button>
+      <div style="text-align:center; padding-top:10px;">
+        <img id="modalAvatar" src="img/img1.png" style="width:120px;height:120px;border-radius:50%;border:3px solid #00ff9c;"/>
+        <h3 id="modalName" style="margin-top:10px;color:#00ff9c"></h3>
+        <p id="modalType" style="color:#aaffdf"></p>
+        <p id="modalBio" style="color:var(--text-soft)"></p>
+        <button id="modalFollowBtn" class="btn" style="margin-top:12px;"></button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -93,6 +209,7 @@
       window.location.href = "login.html";
     }
 
+    // Config Firebase (mantido)
     const firebaseConfig = {
       apiKey: "AIzaSyAVZ-dvyJuGFF4fEHGjS-TrhzBmBslVwNs",
       authDomain: "curso-3-inteligencia-emocional.firebaseapp.com",
@@ -103,34 +220,90 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const nomeUsuario = localStorage.getItem("usuario");
 
-    async function carregarAvatar() {
+    const nomeUsuario = localStorage.getItem("usuario");
+    const defaultAvatar = localStorage.getItem('avatar') || 'img/img1.png';
+
+    // Função utilitária: calcula level a partir do XP (ex.: 100 XP por nível)
+    function calcLevel(xp = 0) {
+      const level = Math.floor(xp / 100) + 1;
+      const progress = xp % 100;
+      return { level, progress, next: 100 };
+    }
+
+    // Carrega/Cria perfil do usuário no Firestore
+    async function ensureUserDoc() {
       try {
-        const snapshot = await db.collection("usuarios").where("nome", "==", nomeUsuario).limit(1).get();
-        if (!snapshot.empty) {
-          const avatar = snapshot.docs[0].data().avatar || 'img/img1.png';
-          document.getElementById("avatar-img").src = avatar;
-          localStorage.setItem('avatar', avatar);
-        }
+        const q = await db.collection("usuarios").where("nome", "==", nomeUsuario).limit(1).get();
+        if (!q.empty) return q.docs[0];
+        // criar usuário inicial
+        const newDocRef = await db.collection("usuarios").add({
+          nome: nomeUsuario,
+          avatar: defaultAvatar,
+          xp: 0,
+          streak: 0,
+          badges: [],
+          followers: [],        // manteve compatibilidade
+          following: [],
+          followersIds: [],
+          followingIds: [],
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        return await newDocRef.get();
       } catch (e) {
-        console.error("Erro ao carregar avatar:", e);
+        console.error("Erro ensureUserDoc:", e);
       }
     }
-    carregarAvatar();
 
-    function mostrarOpcoesAvatar() {
-      document.getElementById("selecao-avatar").classList.toggle("oculto");
+    // Carregar perfil e atualizar UI
+    async function loadProfile() {
+      const doc = await ensureUserDoc();
+      const data = doc.data();
+      document.getElementById('profile-name').textContent = data.nome || nomeUsuario;
+      document.getElementById('avatar-img').src = data.avatar || defaultAvatar;
+      document.getElementById('post-avatar').src = data.avatar || defaultAvatar;
+      localStorage.setItem('avatar', data.avatar || defaultAvatar);
+
+      const xp = data.xp || 0;
+      const { level, progress, next } = calcLevel(xp);
+      document.getElementById('profile-level').textContent = 'Nível ' + level;
+      const percent = Math.round((progress / next) * 100);
+      document.getElementById('xp-fill').style.width = percent + '%';
+      document.getElementById('xp-text').textContent = `${xp} XP • ${progress}/${next}`;
+
+      // atualiza o "XP Orb" que fica no canto (adicionado para destaque)
+      if (typeof updateOrb === 'function') updateOrb(percent);
+
+     // CARREGA TODAS AS PARTES DA PÁGINA (feed, leaderboard, estatísticas, listas)
+     try {
+       renderChart();
+       loadFriendsList();
+       loadUserSuggestions();
+       loadLeaderboard();
+       await loadFeed();
+       loadActivity();
+     } catch (e) {
+       console.error('Erro ao carregar componentes da página:', e);
+     }
     }
 
+    // Mostrar/ocultar seleção avatar
+    function mostrarOpcoesAvatar() {
+      const el = document.getElementById("selecao-avatar");
+      el.style.display = (el.style.display === 'flex' || el.style.display === 'block') ? 'none' : 'flex';
+    }
+
+    // Selecionar avatar e salvar no Firestore
     async function selecionarAvatar(src) {
       try {
-        const snapshot = await db.collection("usuarios").where("nome", "==", nomeUsuario).limit(1).get();
-        if (!snapshot.empty) {
-          await snapshot.docs[0].ref.update({ avatar: src });
+        const q = await db.collection("usuarios").where("nome", "==", nomeUsuario).limit(1).get();
+        if (!q.empty) {
+          await q.docs[0].ref.update({ avatar: src });
           document.getElementById("avatar-img").src = src;
-          document.getElementById("selecao-avatar").classList.add("oculto");
+          document.getElementById("post-avatar").src = src;
+          document.getElementById("selecao-avatar").style.display = 'none';
           localStorage.setItem('avatar', src);
+          await addActivity(`${nomeUsuario} atualizou o avatar.`);
         }
       } catch (e) {
         console.error("Erro ao salvar avatar:", e);
@@ -138,64 +311,963 @@
       }
     }
 
+    // Logout
     function logoutHandler() {
       if (firebase.auth) {
         firebase.auth().signOut().then(() => {
           localStorage.clear();
           window.location.href = "login.html";
-        }).catch((error) => {
-          alert("Erro ao fazer logout: " + error.message);
+        }).catch(() => {
+          localStorage.clear();
+          window.location.href = "login.html";
         });
       } else {
         localStorage.clear();
         window.location.href = "login.html";
       }
     }
-
     document.getElementById('logout-btn').onclick = logoutHandler;
 
-    // Gráfico de pontuação
-    const scores = {
-      empatia: parseInt(localStorage.getItem("score_empatia") || 0),
-      equipe: parseInt(localStorage.getItem("score_equipe") || 0),
-      emocional: parseInt(localStorage.getItem("score_emocional") || 0),
-      comunicacao: parseInt(localStorage.getItem("score_comunicacao") || 0),
+    // Publicar no feed (forum)
+    document.getElementById('post-btn').onclick = async () => {
+      const text = document.getElementById('post-text').value.trim();
+      if (!text) return alert('Escreva algo para publicar.');
+      const avatar = localStorage.getItem('avatar') || defaultAvatar;
+      await db.collection('posts').add({
+        author: nomeUsuario,
+        avatar,
+        text,
+        likes: 0,
+        likedBy: [],
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      document.getElementById('post-text').value = '';
+      // não registrar publicação nas Activities (aparece apenas no feed)
+      // revelar conquista de publicar (teste)
+      revealAchievement('ach_post');
+      loadFeed();
     };
 
-    // Mensagem de boas-vindas
-    document.getElementById('welcome-msg').innerHTML = `Bem-vindo(a), <strong>${nomeUsuario}</strong>!`;
+    // Carregar feed (forum) com comentários
+    async function loadFeed() {
+      const feedEl = document.getElementById('feed');
+      feedEl.innerHTML = '<div style="opacity:0.6">Carregando...</div>';
+      const snapshot = await db.collection('posts').orderBy('createdAt','desc').limit(100).get();
+      feedEl.innerHTML = '';
 
-    const ctx = document.getElementById('scoreChart').getContext('2d');
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['Empatia', 'Trabalho em Equipe', 'Inteligência Emocional', 'Comunicação'],
-        datasets: [{
-          label: 'Pontuação Recorde',
-          data: Object.values(scores),
-          backgroundColor: '#00ff9c',
-          borderColor: '#00ff9c',
-          borderWidth: 2
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: { color: '#00ff9c' },
-            grid: { color: '#00ff9c' }
-          },
-          x: {
-            ticks: { color: '#00ff9c' },
-            grid: { color: '#00ff9c' }
+      // remover posts com mais de 1 dia (24h) e renderizar apenas os atuais
+      const cutoff = Date.now() - (24 * 60 * 60 * 1000);
+      for (const doc of snapshot.docs) {
+        const p = doc.data();
+        // se createdAt existe e é anterior ao cutoff, delete e pule
+        if (p.createdAt && typeof p.createdAt.toMillis === 'function') {
+          const createdMs = p.createdAt.toMillis();
+          if (createdMs < cutoff) {
+            // delete silenciosamente (não bloquear a renderização)
+            doc.ref.delete().catch(() => {});
+            continue;
           }
-        },
-        plugins: {
-          legend: { labels: { color: '#00ff9c' } }
+        }
+
+        // renderizar post (mesma lógica existente)
+        const postEl = document.createElement('div'); postEl.className = 'post';
+        postEl.setAttribute('data-postid', doc.id);
+
+        // header
+        const header = document.createElement('div'); header.className = 'post-top';
+        const left = document.createElement('div'); left.className = 'meta';
+        const img = document.createElement('img'); img.src = p.avatar || defaultAvatar; img.className = 'post-avatar';
+        const author = document.createElement('div'); author.className = 'author';
+        const nameEl = document.createElement('strong'); nameEl.textContent = p.author;
+        const dateEl = document.createElement('div'); dateEl.className = 'muted'; dateEl.textContent = (p.createdAt ? p.createdAt.toDate().toLocaleDateString() : '');
+        author.appendChild(nameEl); author.appendChild(dateEl);
+        left.appendChild(img); left.appendChild(author);
+
+        // Top-right quick action (cutucar)
+        const topActions = document.createElement('div'); topActions.className = 'post-top-actions';
+        const pokeBtn = document.createElement('button');
+        pokeBtn.className = 'btn';
+        pokeBtn.textContent = 'Cutucar';
+        pokeBtn.title = 'Cutucar';
+        pokeBtn.onclick = () => pokeUser(p.author);
+        topActions.appendChild(pokeBtn);
+
+        header.appendChild(left); header.appendChild(topActions);
+
+        const content = document.createElement('div');
+        content.className = 'post-content';
+        content.innerHTML = escapeHtml(p.text);
+
+        // bottom actions (dentro do bloco, alinhadas à esquerda)
+        const bottomActions = document.createElement('div'); bottomActions.className = 'post-actions';
+        const alreadyLiked = (p.likedBy || []).includes(nomeUsuario);
+        const likeBtn = document.createElement('button'); likeBtn.className = 'btn like-btn';
+        likeBtn.innerHTML = `<span class="like-count">${p.likes || 0}</span> Curtir`;
+        likeBtn.onclick = async () => { const res = await toggleLike(doc.id, likeBtn); if (res === 'liked') revealAchievement && revealAchievement('ach_like'); };
+        const commentsBtn = document.createElement('button'); commentsBtn.className = 'btn comment-btn'; commentsBtn.textContent = 'Comentários'; commentsBtn.onclick = () => toggleComments(doc.id);
+        const shareBtn = document.createElement('button'); shareBtn.className = 'btn'; shareBtn.textContent = 'Compartilhar'; shareBtn.onclick = () => sharePost(doc.id);
+        bottomActions.appendChild(likeBtn); bottomActions.appendChild(commentsBtn); bottomActions.appendChild(shareBtn);
+
+        const commentsWrap = document.createElement('div'); 
+        commentsWrap.id = `comments-${doc.id}`; 
+        commentsWrap.className = 'comments-wrap';
+        commentsWrap.style.display = 'none'; 
+        commentsWrap.style.marginTop = '12px';
+        const commentsList = document.createElement('div'); commentsList.id = `comments-list-${doc.id}`; commentsList.className = 'muted comments-list'; commentsList.textContent = 'Carregando comentários...';
+        const commentRow = document.createElement('div'); commentRow.className = 'comment-row';
+        const input = document.createElement('input'); input.id = `comment-input-${doc.id}`; input.placeholder = 'Escreva um comentário...'; input.className = 'comment-input';
+        const sendBtn = document.createElement('button'); sendBtn.className='btn comment-send'; sendBtn.textContent='Enviar'; sendBtn.onclick = () => addComment(doc.id);
+        commentRow.appendChild(input); commentRow.appendChild(sendBtn);
+        
+        commentsWrap.appendChild(commentsList); commentsWrap.appendChild(commentRow);
+        
+        postEl.appendChild(header);
+        postEl.appendChild(content);
+        postEl.appendChild(bottomActions);
+        postEl.appendChild(commentsWrap);
+        
+        feedEl.appendChild(postEl);
+      }
+    }
+
+    // guarda listeners ativos de comentários (para atualizar em tempo real)
+    const _commentUnsubs = {};
+
+    // renderiza lista de comentários a partir de um snapshot/docs array
+    function renderCommentsList(postId, docs) {
+      const listEl = document.getElementById(`comments-list-${postId}`);
+      if (!listEl) return;
+      listEl.innerHTML = '';
+      if (!docs || docs.length === 0) {
+        listEl.innerHTML = '<div class="small muted">Sem comentários ainda.</div>';
+        return;
+      }
+      docs.forEach(doc => {
+        const c = (doc.data ? doc.data() : doc); // aceitar doc or raw data
+        const item = document.createElement('div');
+        item.className = 'comment';
+        item.innerHTML = `
+          <div class="comment-meta">
+            <img class="comment-avatar" src="${escapeHtml(c.avatar || defaultAvatar)}" alt="avatar" />
+            <strong>${escapeHtml(c.author || 'Usuário')}</strong>
+          </div>
+          <div class="comment-body">${escapeHtml(c.text || '')}</div>
+        `;
+        listEl.appendChild(item);
+      });
+    }
+
+    // toggleComments agora usa onSnapshot para updates em tempo real
+    function toggleComments(postId) {
+      const wrap = document.getElementById(`comments-${postId}`);
+      if (!wrap) return;
+      const isHidden = (wrap.style.display === 'none' || wrap.style.display === '');
+      if (isHidden) {
+        wrap.style.display = 'block';
+        // se já existir listener, não recriar
+        if (_commentUnsubs[postId]) return;
+        // cria listener em tempo real
+        const ref = db.collection('posts').doc(postId).collection('comments').orderBy('createdAt','asc');
+        _commentUnsubs[postId] = ref.onSnapshot(snap => {
+          if (!snap) return;
+          const docs = snap.docs;
+          renderCommentsList(postId, docs);
+        }, err => {
+          console.error('comments onSnapshot error', err);
+        });
+      } else {
+        // fechar: remover listener para economizar recursos
+        wrap.style.display = 'none';
+        if (_commentUnsubs[postId]) {
+          try { _commentUnsubs[postId](); } catch(e){}
+          delete _commentUnsubs[postId];
         }
       }
+    }
+
+    // addComment mantém o comportamento, agora atualiza UI imediatamente (optimistic) e garante lista visível
+    async function addComment(postId) {
+      const input = document.getElementById(`comment-input-${postId}`);
+      if (!input) return;
+      const text = input.value.trim();
+      if (!text) return;
+      try {
+        // construir payload do comentário
+        const payload = {
+          author: nomeUsuario,
+          avatar: localStorage.getItem('avatar') || defaultAvatar,
+          text,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        // escreve no Firestore
+        await db.collection('posts').doc(postId).collection('comments').add(payload);
+
+        // limpar campo
+        input.value = '';
+
+        // garantir que a área de comentários esteja visível
+        const wrap = document.getElementById(`comments-${postId}`);
+        if (wrap && (wrap.style.display === 'none' || wrap.style.display === '')) {
+          wrap.style.display = 'block';
+        }
+
+        // atualizar atividade
+        await addActivity(`${nomeUsuario} comentou`);
+
+        // revelar conquista de comentar (se aplicável)
+        if (typeof revealAchievement === 'function') revealAchievement('ach_comment');
+
+        // atualizar UI localmente de forma imediata (optimistic)
+        const listEl = document.getElementById(`comments-list-${postId}`);
+        if (listEl) {
+          const now = new Date();
+          const commentData = { author: nomeUsuario, avatar: localStorage.getItem('avatar') || defaultAvatar, text, createdAt: now };
+          // cria nó igual ao renderCommentsList usa
+          const item = document.createElement('div');
+          item.className = 'comment';
+          item.innerHTML = `
+            <div class="comment-meta">
+              <img class="comment-avatar" src="${escapeHtml(commentData.avatar)}" alt="avatar" />
+              <strong>${escapeHtml(commentData.author)}</strong>
+            </div>
+            <div class="comment-body">${escapeHtml(commentData.text)}</div>
+          `;
+          // adicionar no final da lista (mantém ordem ascendente)
+          // se a lista estiver apenas mostrando "Sem comentários ainda.", substituímos
+          if (listEl.querySelector('.small.muted')) listEl.innerHTML = '';
+          listEl.appendChild(item);
+
+          // garante scroll para o fim (ver o comentário adicionado)
+          listEl.scrollTop = listEl.scrollHeight;
+        }
+
+        // se não houver listener onSnapshot ativo (fallback), recarregar
+        if (!_commentUnsubs[postId]) {
+          // tiny timeout para permitir que firestore propague se necessário
+          setTimeout(() => loadComments(postId), 800);
+        }
+      } catch (e) {
+        console.error('Erro ao adicionar comentário', e);
+      }
+    }
+
+    // antigo loadComments (mantido como fallback)
+    async function loadComments(postId) {
+      const listEl = document.getElementById(`comments-list-${postId}`);
+      if (!listEl) return;
+      listEl.innerHTML = '<div style="opacity:.6">Carregando comentários...</div>';
+      try {
+        const snap = await db.collection('posts').doc(postId).collection('comments').orderBy('createdAt','asc').get();
+        renderCommentsList(postId, snap.docs);
+      } catch (e) {
+        console.error('Erro ao carregar comentários', e);
+        listEl.innerHTML = '<div class="small muted">Erro ao carregar comentários</div>';
+      }
+    }
+
+    // toggleLike usando transaction para evitar contagens negativas/race conditions
+    async function toggleLike(postId, buttonEl) {
+      const postRef = db.collection('posts').doc(postId);
+      try {
+        const result = await db.runTransaction(async (tx) => {
+          const snap = await tx.get(postRef);
+          if (!snap.exists) return null;
+          const data = snap.data();
+          const likedBy = Array.isArray(data.likedBy) ? data.likedBy.slice() : [];
+          let likes = Number(data.likes || 0);
+          if (likedBy.includes(nomeUsuario)) {
+            // descurtir: garantir não ficar negativo
+            const newLikes = Math.max(0, likes - 1);
+            tx.update(postRef, { likes: newLikes, likedBy: firebase.firestore.FieldValue.arrayRemove(nomeUsuario) });
+            return { action: 'unliked', likes: newLikes };
+          } else {
+            // curtir
+            const newLikes = likes + 1;
+            tx.update(postRef, { likes: newLikes, likedBy: firebase.firestore.FieldValue.arrayUnion(nomeUsuario) });
+            return { action: 'liked', likes: newLikes };
+          }
+        });
+        if (!result) return;
+        // atualizar botão de forma consistente com resultado
+        const cnt = result.likes;
+        if (buttonEl) {
+          const label = (result.action === 'liked') ? '❤️' : '🤍';
+          // se botão contém elemento .like-count, atualiza-o; senão, substitui texto
+          const span = buttonEl.querySelector('.like-count');
+          if (span) span.textContent = cnt;
+          // manter rótulo "Curtir" junto do contador quando for botão inline
+          if (buttonEl.classList.contains('like-btn')) {
+            buttonEl.innerHTML = `<span class="like-count">${cnt}</span> Curtir`;
+          } else {
+            buttonEl.innerHTML = `<span class="like-count">${cnt}</span> ${label}`;
+          }
+        }
+        await addActivity(`${nomeUsuario} ${result.action === 'liked' ? 'curtiu' : 'deixou de curtir'} um post`);
+        // revelar conquista se for 'liked'
+        if (result.action === 'liked' && typeof revealAchievement === 'function') revealAchievement('ach_like');
+        return result.action;
+      } catch (e) {
+        console.error('toggleLike transaction error', e);
+        return null;
+      }
+    }
+
+    // Comentários: adicionar e carregar
+    async function addComment(postId) {
+      const input = document.getElementById(`comment-input-${postId}`);
+      if (!input) return;
+      const text = input.value.trim();
+      if (!text) return;
+      try {
+        // construir payload do comentário
+        const payload = {
+          author: nomeUsuario,
+          avatar: localStorage.getItem('avatar') || defaultAvatar,
+          text,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        // escreve no Firestore
+        await db.collection('posts').doc(postId).collection('comments').add(payload);
+
+        // limpar campo
+        input.value = '';
+
+        // garantir que a área de comentários esteja visível
+        const wrap = document.getElementById(`comments-${postId}`);
+        if (wrap && (wrap.style.display === 'none' || wrap.style.display === '')) {
+          wrap.style.display = 'block';
+        }
+
+        // atualizar atividade
+        await addActivity(`${nomeUsuario} comentou`);
+
+        // revelar conquista de comentar (se aplicável)
+        if (typeof revealAchievement === 'function') revealAchievement('ach_comment');
+
+        // atualizar UI localmente de forma imediata (optimistic)
+        const listEl = document.getElementById(`comments-list-${postId}`);
+        if (listEl) {
+          const now = new Date();
+          const commentData = { author: nomeUsuario, avatar: localStorage.getItem('avatar') || defaultAvatar, text, createdAt: now };
+          // cria nó igual ao renderCommentsList usa
+          const item = document.createElement('div');
+          item.className = 'comment';
+          item.innerHTML = `
+            <div class="comment-meta">
+              <img class="comment-avatar" src="${escapeHtml(commentData.avatar)}" alt="avatar" />
+              <strong>${escapeHtml(commentData.author)}</strong>
+            </div>
+            <div class="comment-body">${escapeHtml(commentData.text)}</div>
+          `;
+          // adicionar no final da lista (mantém ordem ascendente)
+          // se a lista estiver apenas mostrando "Sem comentários ainda.", substituímos
+          if (listEl.querySelector('.small.muted')) listEl.innerHTML = '';
+          listEl.appendChild(item);
+
+          // garante scroll para o fim (ver o comentário adicionado)
+          listEl.scrollTop = listEl.scrollHeight;
+        }
+
+        // se não houver listener onSnapshot ativo (fallback), recarregar
+        if (!_commentUnsubs[postId]) {
+          // tiny timeout para permitir que firestore propague se necessário
+          setTimeout(() => loadComments(postId), 800);
+        }
+      } catch (e) {
+        console.error('Erro ao adicionar comentário', e);
+      }
+    }
+
+    // garante carregar/mostrar comentários de um post
+    async function loadComments(postId) {
+      const listEl = document.getElementById(`comments-list-${postId}`);
+      if (!listEl) return;
+      listEl.innerHTML = '<div style="opacity:.6">Carregando comentários...</div>';
+      try {
+        const snap = await db.collection('posts').doc(postId).collection('comments').orderBy('createdAt','asc').get();
+        listEl.innerHTML = '';
+        snap.forEach(doc => {
+          const c = doc.data();
+          const item = document.createElement('div');
+          item.className = 'comment';
+          // mantém formato existente do comentário (meta + body)
+          item.innerHTML = `
+            <div class="comment-meta">
+              <img class="comment-avatar" src="${c.avatar || defaultAvatar}" alt="avatar" />
+              <strong>${escapeHtml(c.author || 'Usuário')}</strong>
+            </div>
+            <div class="comment-body">${escapeHtml(c.text || '')}</div>
+          `;
+          listEl.appendChild(item);
+        });
+        if (snap.empty) listEl.innerHTML = '<div class="small muted">Sem comentários ainda.</div>';
+      } catch (e) {
+        console.error('Erro ao carregar comentários', e);
+        listEl.innerHTML = '<div class="small muted">Erro ao carregar comentários</div>';
+      }
+    }
+
+    // mostra/oculta a área de comentários e força recarregar quando abrir
+    function toggleComments(postId) {
+      const wrap = document.getElementById(`comments-${postId}`);
+      if (!wrap) return;
+      const isHidden = (wrap.style.display === 'none' || wrap.style.display === '');
+      if (isHidden) {
+        wrap.style.display = 'block';
+        loadComments(postId);
+      } else {
+        wrap.style.display = 'none';
+      }
+    }
+
+    // Compartilhar (gera link simples)
+    function sharePost(id) {
+      const url = window.location.href.split('#')[0] + '#post=' + id;
+      navigator.clipboard && navigator.clipboard.writeText(url);
+      alert('Link copiado para a área de transferência.');
+    }
+
+    // Atividades (feed leve) - informações reduzidas, sem horário
+    async function addActivity(text) {
+      await db.collection('activities').add({
+        text,
+        user: nomeUsuario,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      loadActivity();
+    }
+    async function loadActivity() {
+      const el = document.getElementById('activity-feed');
+      const snap = await db.collection('activities').orderBy('createdAt','desc').limit(6).get();
+      el.innerHTML = '';
+      snap.forEach(doc => {
+        const d = doc.data();
+        const txt = `${d.user}: ${truncate(d.text, 80)}`;
+        const line = document.createElement('div');
+        line.textContent = txt;
+        el.appendChild(line);
+      });
+    }
+
+    // Cutucar (modo de interação)
+    async function pokeUser(targetName) {
+      if (targetName === nomeUsuario) { alert('Você não pode cutucar a si mesmo.'); return; }
+      await db.collection('pokes').add({
+        from: nomeUsuario,
+        to: targetName,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      await addActivity(`${nomeUsuario} cutucou ${targetName}`);
+      alert(`Você cutucou ${targetName}`);
+    }
+
+    // Leaderboard
+    async function loadLeaderboard() {
+      const list = document.getElementById('leaderboard');
+      list.innerHTML = '<li>Carregando...</li>';
+      const snap = await db.collection('usuarios').orderBy('xp','desc').limit(10).get();
+      list.innerHTML = '';
+      snap.forEach(doc => {
+        const d = doc.data();
+        const li = document.createElement('li');
+        li.innerHTML = `<span><strong>${d.nome}</strong></span><span>${d.xp || 0} XP</span>`;
+        list.appendChild(li);
+      });
+    }
+
+    // Lista de amigos (following) e adicionar amigos - suporta nomes antigos e ids novos
+    async function loadFriendsList() {
+      const el = document.getElementById('friends');
+      el.innerHTML = 'Carregando...';
+      const q = await db.collection('usuarios').where('nome','==',nomeUsuario).limit(1).get();
+      if (q.empty) { el.innerHTML = 'Sem amigos.'; return; }
+      const data = q.docs[0].data();
+      const following = data.following || [];       // possível array de nomes
+      const followingIds = data.followingIds || []; // possível array de ids
+      el.innerHTML = '';
+      if (following.length === 0 && followingIds.length === 0) {
+        el.innerHTML = 'Você não está seguindo ninguém.';
+        return;
+      }
+      // Priorizar followingIds para buscar documentos
+      const seen = new Set();
+      // buscar por ids
+      for (const id of followingIds) {
+        try {
+          const snap = await db.collection('usuarios').doc(id).get();
+          if (!snap.exists) continue;
+          const d = snap.data();
+          if (seen.has(d.nome)) continue;
+          seen.add(d.nome);
+          appendFriendRow(el, d);
+        } catch (e) { console.warn(e); }
+      }
+      // também incluir names (compatibilidade com dados antigos), evitando duplicatas
+      for (const name of following) {
+        if (seen.has(name)) continue;
+        const snap = await db.collection('usuarios').where('nome','==',name).limit(1).get();
+        if (snap.empty) continue;
+        const d = snap.docs[0].data();
+        seen.add(d.nome);
+        appendFriendRow(el, d);
+      }
+    }
+
+    function appendFriendRow(container, d) {
+      const row = document.createElement('div'); row.className='friend-row';
+      const left = document.createElement('div'); left.className='left';
+      const img = document.createElement('img'); img.src = d.avatar || defaultAvatar;
+      const label = document.createElement('div'); label.innerHTML = `<strong>${d.nome}</strong><div class="small">${d.xp || 0} XP</div>`;
+      left.appendChild(img); left.appendChild(label);
+      const btns = document.createElement('div');
+      const pokeBtn = document.createElement('button'); pokeBtn.className='btn btn-ghost'; pokeBtn.textContent='Cutucar'; pokeBtn.onclick = ()=>pokeUser(d.nome);
+      const unfBtn = document.createElement('button'); unfBtn.className='btn btn-ghost'; unfBtn.textContent='Remover'; unfBtn.onclick = async ()=>{ await unfollowUser(d.nome); loadFriendsList(); loadUserSuggestions(); };
+      btns.appendChild(pokeBtn); btns.appendChild(unfBtn);
+      row.appendChild(left); row.appendChild(btns);
+      container.appendChild(row);
+    }
+
+    // Sugerir usuários para adicionar como amigo (usa ids para robustez)
+    async function loadUserSuggestions() {
+      const suggestionsEl = document.getElementById('user-suggestions');
+      suggestionsEl.innerHTML = 'Carregando...';
+      const allSnap = await db.collection('usuarios').orderBy('createdAt','desc').limit(50).get();
+      // get my following to filter (both ids and names)
+      const meSnap = await db.collection('usuarios').where('nome','==',nomeUsuario).limit(1).get();
+      const myFollowing = (meSnap.empty ? [] : meSnap.docs[0].data().following || []);
+      const myFollowingIds = (meSnap.empty ? [] : meSnap.docs[0].data().followingIds || []);
+      const myId = (meSnap.empty ? null : meSnap.docs[0].id);
+      suggestionsEl.innerHTML = '';
+      allSnap.forEach(doc => {
+        const u = doc.data();
+        const targetId = doc.id;
+        if (u.nome === nomeUsuario) return;
+        const row = document.createElement('div'); row.className='suggest-row';
+        const left = document.createElement('div'); left.style.display='flex'; left.style.alignItems='center'; left.style.gap='8px';
+        const img = document.createElement('img'); img.src = u.avatar || defaultAvatar; img.style.width='40px'; img.style.height='40px'; img.style.borderRadius='50%';
+        const info = document.createElement('div'); info.innerHTML = `<strong>${u.nome}</strong><div class="muted">${u.xp||0} XP</div>`;
+        left.appendChild(img); left.appendChild(info);
+        const btn = document.createElement('button');
+        const followingByName = myFollowing.includes(u.nome);
+        const followingById = myFollowingIds.includes(targetId);
+        if (followingByName || followingById) {
+          btn.textContent = 'Seguindo'; btn.className='btn btn-ghost';
+          btn.onclick = async () => { await unfollowUser(u.nome, targetId); loadUserSuggestions(); loadFriendsList(); };
+        } else {
+          btn.textContent = 'Adicionar'; btn.className='btn';
+          btn.onclick = async () => { await followUser(u.nome, targetId); loadUserSuggestions(); loadFriendsList(); };
+        }
+        row.appendChild(left); row.appendChild(btn);
+        suggestionsEl.appendChild(row);
+      });
+    }
+
+    // Follow / Unfollow (usa both: nomes para compatibilidade e ids para robustez)
+    async function followUser(targetName, targetId=null, myId=null) {
+      if (targetName === nomeUsuario) return;
+      // get my doc and target doc
+      const q = await db.collection('usuarios').where('nome','==',nomeUsuario).limit(1).get();
+      const tRef = targetId ? db.collection('usuarios').doc(targetId) : (await db.collection('usuarios').where('nome','==',targetName).limit(1).get()).docs[0]?.ref;
+      if (q.empty || !tRef) return;
+      const refMe = q.docs[0].ref;
+      const refTarget = tRef;
+      // push both name (compat) and id lists
+      await refMe.update({
+        following: firebase.firestore.FieldValue.arrayUnion(targetName),
+        followingIds: firebase.firestore.FieldValue.arrayUnion(refTarget.id)
+      });
+      await refTarget.update({
+        followers: firebase.firestore.FieldValue.arrayUnion(nomeUsuario),
+        followersIds: firebase.firestore.FieldValue.arrayUnion(q.docs[0].id)
+      });
+      await addActivity(`${nomeUsuario} começou a seguir ${targetName}`);
+    }
+
+    async function unfollowUser(targetName, targetId=null) {
+      if (targetName === nomeUsuario) return;
+      const q = await db.collection('usuarios').where('nome','==',nomeUsuario).limit(1).get();
+      const tRef = targetId ? db.collection('usuarios').doc(targetId) : (await db.collection('usuarios').where('nome','==',targetName).limit(1).get()).docs[0]?.ref;
+      if (q.empty || !tRef) return;
+      const refMe = q.docs[0].ref;
+      const refTarget = tRef;
+      await refMe.update({
+        following: firebase.firestore.FieldValue.arrayRemove(targetName),
+        followingIds: firebase.firestore.FieldValue.arrayRemove(refTarget.id)
+      });
+      await refTarget.update({
+        followers: firebase.firestore.FieldValue.arrayRemove(nomeUsuario),
+        followersIds: firebase.firestore.FieldValue.arrayRemove(q.docs[0].id)
+      });
+      await addActivity(`${nomeUsuario} deixou de seguir ${targetName}`);
+    }
+
+    // Gráfico de pontuação (usando localStorage como antes, mas também soma XP)
+    function renderChart() {
+      try {
+        const scores = {
+          empatia: parseInt(localStorage.getItem("score_empatia") || 0),
+          equipe: parseInt(localStorage.getItem("score_equipe") || 0),
+          emocional: parseInt(localStorage.getItem("score_emocional") || 0),
+          comunicacao: parseInt(localStorage.getItem("score_comunicacao") || 0),
+        };
+        const ctx = document.getElementById('scoreChart').getContext('2d');
+        if (window._scoreChart) window._scoreChart.destroy();
+        window._scoreChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ['Empatia', 'Trabalho em Equipe', 'Inteligência Emocional', 'Comunicação'],
+            datasets: [{
+              label: 'Pontuação Recorde',
+              data: Object.values(scores),
+              backgroundColor: '#00ff9c',
+              borderColor: '#00ff9c',
+              borderWidth: 2
+            }]
+          },
+          options: {
+            maintainAspectRatio: false,
+            responsive: true,
+            scales: {
+              y: { beginAtZero:true, ticks:{ color:'#00ff9c' }, grid:{ color:'#083229' } },
+              x: { ticks:{ color:'#00ff9c' }, grid:{ color:'transparent' } }
+            },
+            plugins: { legend:{ labels:{ color:'#00ff9c' } } }
+          }
+        });
+      } catch (e) { console.error(e); }
+    }
+
+    // util: truncate
+    function truncate(s, n) { return s && s.length > n ? s.substring(0,n-1)+'…' : s; }
+
+    // Escapar HTML simples
+    function escapeHtml(text) {
+      return (text || '').replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; });
+    }
+
+    /* ===== Conquistas: bloco único e seguro ===== */
+(function initAchievements(){
+
+  // evitar redefinir se já existir
+  if (window.__ACH_INIT) return;
+  window.__ACH_INIT = true;
+
+  const ACH_LIST = {
+    ach_post: { id: 'ach_post', title: 'Primeiro Post', img: 'img/ach1.png', hint: 'Publique seu primeiro post' },
+    ach_like: { id: 'ach_like', title: 'Primeira Curtida', img: 'img/ach2.png', hint: 'Curta o primeiro post' },
+    ach_comment: { id: 'ach_comment', title: 'Primeiro Comentário', img: 'img/ach3.png', hint: 'Comente pela primeira vez' }
+  };
+
+  function getMyDocRef() {
+    return db.collection('usuarios').where('nome','==',nomeUsuario).limit(1).get();
+  }
+
+  async function renderAchievements() {
+    const modal = document.getElementById('achievementsModal');
+    if (!modal) return;
+    const grid = modal.querySelector('.ach-grid');
+    if (!grid) return;
+    grid.innerHTML = 'Carregando...';
+    try {
+      const q = await getMyDocRef();
+      const data = q.empty ? {} : q.docs[0].data();
+      const badges = data.badges || [];
+      grid.innerHTML = '';
+      Object.values(ACH_LIST).forEach(a => {
+        const unlocked = badges.find(b => b.id === a.id);
+        const card = document.createElement('div');
+        card.className = 'ach-item-card';
+        card.innerHTML = `
+          <div class="ach-img-wrap ${unlocked ? 'unlocked' : 'locked'}">
+            <img src="${a.img}" alt="${a.title}" />
+            ${!unlocked ? '<div class="lock-overlay">🔒</div>' : ''}
+          </div>
+          <div class="ach-title">${a.title}</div>
+          <div class="ach-date">${unlocked ? ('Conquistada: ' + new Date(unlocked.earnedAt).toLocaleString()) : '<span class="muted">Ainda não desbloqueada</span>'}</div>
+          <div class="ach-hint small">${a.hint}</div>
+        `;
+        grid.appendChild(card);
+      });
+    } catch (e) {
+      console.error('renderAchievements', e);
+      grid.innerHTML = 'Erro ao carregar conquistas';
+    }
+  }
+
+  async function revealAchievement(id) {
+    const meta = ACH_LIST[id];
+    if (!meta) return;
+    try {
+      const q = await getMyDocRef();
+      if (q.empty) return;
+      const doc = q.docs[0];
+      const data = doc.data();
+      const badges = data.badges || [];
+      if (badges.find(b => b.id === id)) return; // já possui
+      const badge = { id: meta.id, title: meta.title, img: meta.img, earnedAt: new Date().toISOString() };
+
+      // usar transaction/update seguro
+      await doc.ref.update({ badges: firebase.firestore.FieldValue.arrayUnion(badge) });
+
+      // registrar atividade que aparecerá em Atividades Recentes
+      await addActivity(`${nomeUsuario} desbloqueou a conquista: ${meta.title}`);
+
+      // atualizar modal se aberto
+      const m = document.getElementById('achievementsModal');
+      if (m && !m.classList.contains('hidden')) renderAchievements();
+
+    } catch (e) {
+      console.error('revealAchievement', e);
+    }
+  }
+
+  // expor para outras partes do código (publish/like/comment)
+  window.revealAchievement = revealAchievement;
+  window.renderAchievements = renderAchievements;
+
+  // botão de abrir/fechar
+  const btn = document.getElementById('openAchievements');
+  if (btn) btn.addEventListener('click', () => {
+    const m = document.getElementById('achievementsModal');
+    if (!m) return;
+    m.classList.toggle('hidden');
+    if (!m.classList.contains('hidden')) renderAchievements();
+  });
+
+  // botão fechar dentro do modal (se existir)
+  document.addEventListener('click', (ev) => {
+    if (ev.target && ev.target.matches && ev.target.matches('#achievementsModal .btn-exit')) {
+      const m = document.getElementById('achievementsModal'); if (m) m.classList.add('hidden');
+    }
+  });
+
+})();
+  
+    // Inicializar
+    loadProfile();
+
+    // Botão editar perfil (abrir prompt simples)
+    document.getElementById('edit-profile-btn').onclick = async () => {
+      const newName = prompt('Editar nome:', nomeUsuario);
+      if (!newName) return;
+      // atualizar nome local e firestore
+      const q = await db.collection('usuarios').where('nome','==',nomeUsuario).limit(1).get();
+      if (!q.empty) {
+        await q.docs[0].ref.update({ nome: newName });
+        // atualizar posts e activities (opcional)
+        localStorage.setItem('usuario', newName);
+        window.location.reload();
+      }
+    };
+
+    // Cursos buttons
+    document.querySelectorAll('.course-access').forEach(b => b.addEventListener('click', (e) => {
+      const t = e.currentTarget.dataset.target; if (t) window.location.href = t;
+    }));
+    // Bottom course cards map (keeps previous behavior)
+    document.querySelectorAll('.course-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const course = btn.dataset.course;
+        const map = {
+          empatia: 'ética.html',
+          equipe: 'curso2.html',
+          emocional: 'modulo1.html',
+          comunicacao: 'comunicação.html'
+        };
+        if (map[course]) window.location.href = map[course];
+      });
     });
+
+    // Buscar post específico pela hash (compartilhamento)
+    (function checkHash() {
+      const h = location.hash.replace('#','');
+      if (!h) return;
+      if (h.startsWith('post=')) {
+        const postId = h.split('=')[1];
+        loadFeed().then(()=> {
+          const el = document.querySelector(`[data-postid="${postId}"]`);
+          if (el) { el.style.outline = '3px solid #00ff9c'; el.scrollIntoView({behavior:'smooth',block:'center'}); }
+        });
+      }
+    })();
+
+    // Carrega avatar salvo localmente logo que o script é executado
+    (function cargarAvatarInit() {
+      const av = localStorage.getItem('avatar');
+      if (av) { document.getElementById('avatar-img').src = av; document.getElementById('post-avatar').src = av; }
+    })();
+
+    // Funções de usuário list / modal
+    async function loadUsersList() {
+      const nomeUsuario = localStorage.getItem('usuario');
+      const usersListEl = document.getElementById('usersList');
+      usersListEl.innerHTML = 'Carregando...';
+      try {
+        const meSnap = await db.collection('usuarios').where('nome','==',nomeUsuario).limit(1).get();
+        const meDoc = meSnap.empty ? null : meSnap.docs[0];
+        const seguindo = (meDoc && meDoc.data().following) || [];
+
+        const allSnap = await db.collection('usuarios').orderBy('createdAt','desc').get();
+        usersListEl.innerHTML = '';
+        allSnap.forEach(doc => {
+          const u = doc.data();
+          if (u.nome === nomeUsuario) return; // não listar eu mesmo
+          const card = document.createElement('div');
+          card.className = 'course-card';
+          card.style.textAlign = 'left';
+          const isFollowing = seguindo.includes(u.nome) || (meDoc && (meDoc.data().followingIds || []).includes(doc.id));
+          card.innerHTML = `
+            <div style="display:flex;align-items:center;gap:12px">
+              <img src="${u.avatar || 'img/img1.png'}" style="width:56px;height:56px;border-radius:50%;border:2px solid #00ff9c;object-fit:cover"/>
+              <div style="flex:1">
+                <strong style="color:#00ff9c">${u.nome}</strong>
+                <div style="color:#aaffdf;font-size:.9rem">${u.tipo || 'usuario'}</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <button class="btn followBtn" data-name="${u.nome}" data-id="${doc.id}">${isFollowing ? 'Seguindo' : 'Seguir'}</button>
+                <button class="btn" onclick="openProfileModal('${u.nome}')">Perfil</button>
+              </div>
+            </div>
+          `;
+          usersListEl.appendChild(card);
+        });
+        document.querySelectorAll('.followBtn').forEach(b => {
+          b.addEventListener('click', async (e) => {
+            const name = e.currentTarget.dataset.name;
+            const id = e.currentTarget.dataset.id;
+            // toggle by calling follow/unfollow depending on current text
+            if (e.currentTarget.textContent.trim() === 'Seguindo') {
+              await unfollowUser(name, id);
+            } else {
+              await followUser(name, id);
+            }
+            await loadUsersList();
+            await loadFriendsList();
+          });
+        });
+      } catch (err) {
+        console.error('Erro ao carregar usuários:', err);
+        document.getElementById('usersList').innerText = 'Erro ao carregar usuários.';
+      }
+    }
+
+    async function openProfileModal(nome) {
+      try {
+        const snap = await db.collection('usuarios').where('nome','==',nome).limit(1).get();
+        if (snap.empty) return alert('Perfil não encontrado.');
+        const data = snap.docs[0].data();
+        const targetId = snap.docs[0].id;
+        document.getElementById('modalAvatar').src = data.avatar || 'img/img1.png';
+        document.getElementById('modalName').textContent = data.nome;
+        document.getElementById('modalType').textContent = data.tipo || 'usuario';
+        document.getElementById('modalBio').textContent = data.bio || '';
+        const followBtn = document.getElementById('modalFollowBtn');
+        const meSnap = await db.collection('usuarios').where('nome','==', localStorage.getItem('usuario')).limit(1).get();
+        const seguindo = (meSnap.empty ? [] : meSnap.docs[0].data().following || []);
+        const isFollowing = seguindo.includes(nome) || (meSnap.docs[0].data().followingIds || []).includes(targetId);
+        followBtn.textContent = isFollowing ? 'Seguindo' : 'Seguir';
+        followBtn.onclick = async () => {
+          if (followBtn.textContent === 'Seguindo') await unfollowUser(nome, targetId);
+          else await followUser(nome, targetId);
+          await loadUsersList();
+          await loadFriendsList();
+          openProfileModal(nome); // refresh modal
+        };
+        document.getElementById('profileModal').classList.remove('hidden');
+      } catch (e) {
+        console.error('Erro ao abrir perfil:', e);
+        alert('Erro ao abrir perfil.');
+      }
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profileModal').classList.add('hidden');
+    }
+
+    // carregar lista ao abrir a central (após carregar avatar)
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        if (localStorage.getItem('usuario')) {
+          loadUsersList();
+        }
+      }, 300);
+     // "Ir para os cursos" scroll handler
+     const goto = document.getElementById('gotoCourses');
+     if (goto) goto.addEventListener('click', () => {
+       const el = document.getElementById('cursos') || document.querySelector('.course-grid');
+       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+     });
+    });
+
   </script>
+
+  <script>
+/* Neon bubbles background — lightweight, safe (no duplication) */
+(function initNeonBubbles(){
+  if (document.getElementById('neonCanvas')) return;
+  const canvas = document.createElement('canvas');
+  canvas.id = 'neonCanvas';
+  canvas.style.position = 'fixed';
+  canvas.style.inset = '0';
+  canvas.style.zIndex = '0';
+  canvas.style.pointerEvents = 'none';
+  document.body.prepend(canvas);
+
+  const ctx = canvas.getContext('2d');
+  let particles = [], w, h, dpr;
+
+  function resize(){
+    dpr = window.devicePixelRatio || 1;
+    w = canvas.width = Math.floor(window.innerWidth * dpr);
+    h = canvas.height = Math.floor(window.innerHeight * dpr);
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+
+    particles = [];
+    const count = Math.max(24, Math.floor(window.innerWidth / 60));
+    for (let i = 0; i < count; i++){
+      particles.push({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        r: 6 + Math.random() * 26,
+        vx: (Math.random() - 0.5) * 0.25,
+        vy: (Math.random() - 0.5) * 0.25,
+        alpha: 0.06 + Math.random() * 0.18
+      });
+    }
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    for (const p of particles){
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < -p.r) p.x = window.innerWidth + p.r;
+      if (p.x > window.innerWidth + p.r) p.x = -p.r;
+      if (p.y < -p.r) p.y = window.innerHeight + p.r;
+      if (p.y > window.innerHeight + p.r) p.y = -p.r;
+
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 2.6);
+      grad.addColorStop(0, `rgba(0,255,156,${p.alpha})`);
+      grad.addColorStop(0.45, `rgba(0,200,140,${p.alpha * 0.6})`);
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+
+      ctx.beginPath();
+      ctx.fillStyle = grad;
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', resize, { passive: true });
+  resize();
+  requestAnimationFrame(draw);
+})();
+</script>
+
 </body>
 </html>
