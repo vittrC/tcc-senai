@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!  DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -201,7 +201,7 @@ const questions = [
       { text: "B) vai também ao parque e cobra a entrada em nome da empresa.", ethical: false },
       { text: "C) faz stories marcando ele e a empresa.", ethical: false },
       { text: "D) ignora. Ética não é seu forte.", ethical: false },
-      { text: "E) Conversa com ele em particular e sugere que seja honesto da próxima vez.", ethical: true }
+      { text: "E) Conversa com ele em particular e sugere que seja honesto da próxima vez.", ethical: true, unlock: 'eth_private_talk' }
     ]
   },
   {
@@ -242,7 +242,7 @@ const questions = [
     text: "Um cliente irritado liga gritando que o pedido atrasou e xinga você. Você, internamente, já planeja todas as respostas ácidas. O que faz?",
     gif: "gifs/etica_q8.gif",
     answers: [
-      { text: "A) Respira fundo e responde com calma: “Posso ajudar a refazer o pedido?”, ignorando o tom dele.", ethical: true },
+      { text: "A) Respira fundo e responde com calma: “Posso ajudar a refazer o pedido?”, ignorando o tom dele.", ethical: true, unlock: 'eth_calm_response' },
       { text: "B) Telefona de volta fingindo ser um robô irritado: “Desculpe, só sirvo café gelado”.", ethical: false },
       { text: "C) Desliga na cara do cliente e grava o áudio para usar em stories.", ethical: false },
       { text: "D) Repassa o telefone para o chefe e manda mensagem: “Chefe, virou novela mexicana aqui”.", ethical: false }
@@ -276,7 +276,7 @@ const questions = [
     gif: "gifs/etica_q11.gif",
     answers: [
       { text: "A) Fecha os olhos: “É só o jeito que as grandes firmas funcionam”.", ethical: false },
-      { text: "B) Informa imediatamente a diretoria e prepara documentação para a denúncia externa, mesmo sabendo que pode perder o emprego.", ethical: true },
+      { text: "B) Informa imediatamente a diretoria e prepara documentação para a denúncia externa, mesmo sabendo que pode perder o emprego.", ethical: true, unlock: 'eth_whistleblower' },
       { text: "C) Pega uma porcentagem da diferença e guarda em um “fundo secreto” enquanto emite relatórios falsos.", ethical: false },
       { text: "D) Finge que não viu e aceita um bônus extra pela “boa performance” nos números.", ethical: false }
     ]
@@ -449,13 +449,30 @@ function showQuestion() {
     const btn = document.createElement("button");
     btn.className = "btn";
     btn.textContent = answer.text;
-    btn.onclick = () => selectAnswer(answer.ethical);
+    // passa o objeto inteiro para que 'unlock' seja recebido por selectAnswer
+    btn.onclick = () => selectAnswer(answer);
     answersDiv.appendChild(btn);
   });
 }
 
-function selectAnswer(isEthical) {
+function selectAnswer(answerObj) {
+  // answerObj can be boolean (legacy) or object
+  let isEthical = false;
+  let unlock = null;
+  if (typeof answerObj === 'object') {
+    isEthical = !!answerObj.ethical;
+    unlock = answerObj.unlock || null;
+  } else {
+    isEthical = !!answerObj;
+  }
+
   if (isEthical) score += POINTS_PER_CORRECT;
+  // conceder XP imediato opcional (já é concedido no final do curso)
+  // se resposta desbloqueia conquista, gravar no Firestore
+  if (unlock) {
+    try { awardEthicAchievement(unlock); } catch(e){ console.warn(e); }
+  }
+
   currentQuestion++;
   if (currentQuestion < questions.length) {
     showQuestion();
@@ -465,64 +482,68 @@ function selectAnswer(isEthical) {
 }
 
 function showResult() {
-  lastScore = score;
-  if (score > highScore) {
-    highScore = score;
-    localStorage.setItem('highScore', highScore);
+    lastScore = score;
+    if (score > highScore) {
+      highScore = score;
+      localStorage.setItem('highScore', highScore);
 
-    // Atualiza o recorde no Firestore para o ADM ver
-    const usuario = localStorage.getItem('usuario') || 'desconhecido';
-    db.collection("usuarios").where("nome", "==", usuario).get().then(snapshot => {
-      if (!snapshot.empty) {
-        snapshot.docs[0].ref.update({ highScoreEtica: Number(highScore) });
-      }
-    });
-  }
-  localStorage.setItem('lastScore', lastScore);
+      // Atualiza o recorde no Firestore para o ADM ver
+      const usuario = localStorage.getItem('usuario') || 'desconhecido';
+      db.collection("usuarios").where("nome", "==", usuario).get().then(snapshot => {
+        if (!snapshot.empty) {
+          snapshot.docs[0].ref.update({ highScoreEtica: Number(highScore) }).catch(()=>{});
+        }
+      }).catch(()=>{});
+    }
+    localStorage.setItem('lastScore', lastScore);
 
-  // ADICIONE ESTA LINHA para atualizar o gráfico da central:
-  localStorage.setItem('score_empatia', highScore);
+    // concede XP direto no Firestore (idempotente)
+    // chama a função que já existe abaixo (giveXPForCourse)
+    try { giveXPForCourse('empatia', Number(highScore)).catch(e=>console.warn('giveXPForCourse error', e)); } catch(e){}
 
-  document.getElementById("game").classList.add("hidden");
-  document.getElementById("result").classList.remove("hidden");
-  
-  const avatarUrl = localStorage.getItem('avatar') || 'img/img1.png';
-  document.getElementById("resultAvatar").src = avatarUrl;
-  
-  const totalPoints = questions.length * POINTS_PER_CORRECT;
-  
-  animateValue("finalScoreValue", 0, score, 1000);
-  document.getElementById("totalPossibleScore").textContent = totalPoints;
-  document.getElementById("highScoreDisplay").textContent = highScore;
-  
-  const percentage = (score / totalPoints) * 100;
-  setTimeout(() => {
-    document.getElementById("scoreProgress").style.width = `${percentage}%`;
-  }, 300);
-  
-  let message = "";
-  if (percentage >= 90) message = "✨ Ética Impecável! Você é um exemplo no ambiente de trabalho.";
-  else if (percentage >= 70) message = "🔎 Excelente! Suas decisões são quase sempre corretas.";
-  else if (percentage >= 50) message = "⚡ Bom trabalho! Algumas escolhas poderiam ser melhores.";
-  else if (percentage >= 30) message = "⚠️ Atenção! Revise seus conceitos sobre ética profissional.";
-  else message = "🚨 Alerta! Suas decisões precisam de uma revisão urgente.";
-  
-  document.getElementById("finalMessage").textContent = message;
-  
-  updateScoreDisplay();
-  
-  // Salvar pontuação no Firestore
-  try {
-    const usuario = localStorage.getItem('usuario') || 'desconhecido';
-    db.collection("pontuacoes").add({
-      usuario: usuario,
-      curso: "ética",
-      pontuacao: score,
-      data: new Date()
-    });
-  } catch (e) {
-    console.error("Erro ao salvar pontuação no Firestore:", e);
-  }
+    // limpar flags locais antigas (se houver)
+    try { localStorage.removeItem('score_empatia'); localStorage.removeItem('courseComplete::empatia'); } catch(e){}
+
+    document.getElementById("game").classList.add("hidden");
+    document.getElementById("result").classList.remove("hidden");
+    
+    const avatarUrl = localStorage.getItem('avatar') || 'img/img1.png';
+    document.getElementById("resultAvatar").src = avatarUrl;
+    
+    const totalPoints = questions.length * POINTS_PER_CORRECT;
+    
+    animateValue("finalScoreValue", 0, score, 1000);
+    document.getElementById("totalPossibleScore").textContent = totalPoints;
+    document.getElementById("highScoreDisplay").textContent = highScore;
+    
+    const percentage = (score / totalPoints) * 100;
+    setTimeout(() => {
+      document.getElementById("scoreProgress").style.width = `${percentage}%`;
+    }, 300);
+    
+    let message = "";
+    if (percentage >= 90) message = "✨ Ética Impecável! Você é um exemplo no ambiente de trabalho.";
+    else if (percentage >= 70) message = "🔎 Excelente! Suas decisões são quase sempre corretas.";
+    else if (percentage >= 50) message = "⚡ Bom trabalho! Algumas escolhas poderiam ser melhores.";
+    else if (percentage >= 30) message = "⚠️ Atenção! Revise seus conceitos sobre ética profissional.";
+    else message = "🚨 Alerta! Suas decisões precisam de uma revisão urgente.";
+    
+    document.getElementById("finalMessage").textContent = message;
+    
+    updateScoreDisplay();
+    
+    // Salvar pontuação no Firestore (histórico)
+    try {
+      const usuario = localStorage.getItem('usuario') || 'desconhecido';
+      db.collection("pontuacoes").add({
+        usuario: usuario,
+        curso: "ética",
+        pontuacao: score,
+        data: new Date()
+      }).catch(e => console.warn('pontuacoes add failed', e));
+    } catch (e) {
+      console.error("Erro ao salvar pontuação no Firestore:", e);
+    }
 }
 
 function animateValue(id, start, end, duration) {
@@ -578,6 +599,91 @@ function showResetConfirmation() {
 }
 function hideResetConfirmation() {
   document.getElementById('resetConfirm').classList.add('hidden');
+}
+
+// (no topo do script ou logo antes de showResult) função que atualiza XP no Firestore
+async function giveXPForCourse(courseKey, score) {
+    try {
+      const nome = localStorage.getItem('usuario') || 'desconhecido';
+      const avatar = localStorage.getItem('avatar') || 'img/img1.png';
+      const q = await db.collection('usuarios').where('nome','==',nome).limit(1).get();
+      let userRef;
+      if (q.empty) {
+        const ref = await db.collection('usuarios').add({
+          nome,
+          avatar,
+          xp: 0,
+          processedCourses: [],
+          badges: []
+        });
+        userRef = ref;
+      } else {
+        userRef = q.docs[0].ref;
+      }
+
+      await db.runTransaction(async (tx) => {
+        const snap = await tx.get(userRef);
+        if (!snap.exists) return;
+        const data = snap.data() || {};
+        const processed = Array.isArray(data.processedCourses) ? data.processedCourses : [];
+        if (processed.includes(courseKey)) return; // evita duplicata
+        const xpGain = Math.max(5, Math.round(Number(score || 0) / 10));
+        tx.update(userRef, {
+          xp: (Number(data.xp || 0) + xpGain),
+          processedCourses: firebase.firestore.FieldValue.arrayUnion(courseKey),
+          xpHistory: firebase.firestore.FieldValue.arrayUnion({ ts: firebase.firestore.Timestamp.now(), xp: xpGain, course: courseKey, score: Number(score||0) })
+        });
+      });
+
+      // feedback
+      try { const toast = document.createElement('div'); toast.textContent = `+${Math.max(5, Math.round(Number(score||0)/10))} XP`; Object.assign(toast.style,{position:'fixed',right:'18px',bottom:'18px',background:'#002',color:'#0f8',padding:'8px',borderRadius:'8px',zIndex:99999}); document.body.appendChild(toast); setTimeout(()=>toast.remove(),2000); } catch(e){}
+    } catch(e){
+      console.error('giveXPForCourse error', e);
+    }
+  }
+
+async function awardEthicAchievement(achId) {
+  console.log('awardEthicAchievement called:', achId); // debug
+  try {
+    if (!achId) return;
+    const usuario = localStorage.getItem('usuario') || 'desconhecido';
+    const q = await db.collection('usuarios').where('nome','==',usuario).limit(1).get();
+    if (q.empty) {
+      // cria usuário se não existir e já adiciona a badge
+      const ref = await db.collection('usuarios').add({
+        nome: usuario,
+        avatar: localStorage.getItem('avatar') || 'img/img1.png',
+        xp: 0,
+        processedCourses: [],
+        badges: [{ id: achId, title: achId, img: `img/${achId}.png`, earnedAt: firebase.firestore.Timestamp.now() }]
+      });
+      await db.collection('activities').add({ user: usuario, text: `Desbloqueou conquista: ${achId}`, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+      showToast && showToast('Conquista desbloqueada!');
+      return;
+    }
+    const doc = q.docs[0];
+    const data = doc.data() || {};
+    const badges = Array.isArray(data.badges) ? data.badges : [];
+    if (badges.find(b => b.id === achId)) return; // já possui
+    const metaTitle = {
+      eth_private_talk: 'Conversa Particular',
+      eth_whistleblower: 'Denúncia Corajosa',
+      eth_calm_response: 'Resposta Mansa'
+    }[achId] || achId;
+    const badge = {
+      id: achId,
+      title: metaTitle,
+      img: `img/${achId}.png`,
+      earnedAt: firebase.firestore.Timestamp.now() // <-- sempre Timestamp!
+    };
+    await doc.ref.update({
+      badges: firebase.firestore.FieldValue.arrayUnion(badge)
+    });
+    await db.collection('activities').add({ user: usuario, text: `Desbloqueou conquista: ${metaTitle}`, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    try { showToast && showToast(`Conquista desbloqueada: ${metaTitle}`); } catch(e){}
+  } catch (e) {
+    console.error('awardEthicAchievement error', e);
+  }
 }
 
 window.onload = function() {

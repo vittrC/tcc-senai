@@ -716,6 +716,49 @@
     }
   }
 
+  // função utilitária: concede XP ao usuário por curso (transação simples, idempotente)
+  async function giveXPForCourse(courseKey, score) {
+    try {
+      const nome = localStorage.getItem('usuario') || 'desconhecido';
+      const q = await db.collection('usuarios').where('nome','==',nome).limit(1).get();
+      let userRef;
+      if (q.empty) {
+        const ref = await db.collection('usuarios').add({
+          nome,
+          avatar: localStorage.getItem('avatar') || avatarUsuario,
+          xp: 0,
+          processedCourses: [],
+          badges: []
+        });
+        userRef = ref;
+      } else {
+        userRef = q.docs[0].ref;
+      }
+
+      await db.runTransaction(async (tx) => {
+        const snap = await tx.get(userRef);
+        if (!snap.exists) return;
+        const data = snap.data() || {};
+        const processed = Array.isArray(data.processedCourses) ? data.processedCourses : [];
+        if (processed.includes(courseKey)) return; // já processado
+        const xpGain = Math.max(5, Math.round(Number(score || 0) / 10)); // simples: score/10
+        tx.update(userRef, {
+          xp: (Number(data.xp || 0) + xpGain),
+          processedCourses: firebase.firestore.FieldValue.arrayUnion(courseKey),
+          xpHistory: firebase.firestore.FieldValue.arrayUnion({ ts: firebase.firestore.Timestamp.now(), xp: xpGain, course: courseKey, score: Number(score||0) })
+        });
+      });
+
+      // feedback local
+      showToast(`+${Math.max(5, Math.round(Number(score || 0)/10))} XP recebido por ${courseKey}`);
+      // opcional: atualizar leaderboard/profile se estiver na central
+      try { if (typeof renderUserProfile === 'function') renderUserProfile(); } catch(e){}
+      try { if (typeof loadLeaderboard === 'function') loadLeaderboard(); } catch(e){}
+    } catch (e) {
+      console.error('giveXPForCourse error', e);
+    }
+  }
+
   function mostrarResultadoFinal(jogadoresPontuacao) {
     const resultadoDiv = document.getElementById("resultadoFinal");
     const rankingDiv = document.getElementById("ranking");
@@ -726,15 +769,16 @@
     resultadoDiv.classList.remove("hidden");
     somFim.play();
 
-    // salvar pontuação do jogador localmente e no Firestore
-    const meuScore = ordenado.find(j => j.nome === nomeUsuario)?.pontos || 0;
-    localStorage.setItem("score_comunicacao", meuScore);
-    db.collection("usuarios").where("nome","==",nomeUsuario).limit(1).get().then(snap=>{
-      if (!snap.empty) {
-        const ref = snap.docs[0].ref;
-        ref.update({ score_comunicacao: Math.max(meuScore, snap.docs[0].data().score_comunicacao || 0) }).catch(()=>{});
-      }
-    }).catch(()=>{});
+    // identifica minha pontuação e concede XP direto no Firestore (idempotente)
+    try {
+      const meuScore = (ordenado.find(j => j.nome === jogadorId) || {}).pontos || 0;
+      giveXPForCourse('comunicacao', Number(meuScore)).catch(e => console.warn('XP assign failed', e));
+    } catch(e){
+      console.warn('failed to compute/confer my score', e);
+    }
+
+    // limpar flags locais antigas (compatibilidade)
+    try { localStorage.removeItem('score_comunicacao'); localStorage.removeItem('courseComplete::comunicacao'); } catch(e){}
   }
 
   function voltarMenu() { location.reload(); }

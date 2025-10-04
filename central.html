@@ -106,12 +106,12 @@
       </div>
 
       <!-- Pontuação geral (gráfico) -->
-      <div class="card" style="margin-top:12px;">
+      <!-- <div class="card" style="margin-top:12px;">
         <h3>Sua Pontuação</h3>
         <div style="height:180px;">
           <canvas id="scoreChart"></canvas>
         </div>
-      </div>
+      </div> -->
     </div>
 
     <!-- Right sidebar: leaderboard e amigos -->
@@ -255,6 +255,66 @@
       }
     }
 
+    // utilitários essenciais (evitam ReferenceError)
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function truncate(text, maxLen = 80) {
+      if (text === null || text === undefined) return '';
+      const s = String(text);
+      return s.length > maxLen ? s.slice(0, maxLen - 1) + '…' : s;
+    }
+
+    // watcher de posts em tempo real — garante que posts novos apareçam no feed
+    let _postsUnsub = null;
+    function watchPostsRealtime() {
+      try {
+        if (!db) return;
+        if (_postsUnsub) _postsUnsub();
+        _postsUnsub = db.collection('posts').orderBy('createdAt', 'desc').limit(100)
+          .onSnapshot(snap => {
+            if (typeof loadFeed === 'function') {
+              loadFeed().catch(e => console.warn('watchPostsRealtime -> loadFeed failed', e));
+            }
+          }, err => {
+            console.warn('posts onSnapshot error', err);
+          });
+      } catch (e) {
+        console.warn('watchPostsRealtime init error', e);
+      }
+    }
+
+    // Carregar/Cria perfil do usuário no Firestore
+    async function ensureUserDoc() {
+      try {
+        const q = await db.collection("usuarios").where("nome", "==", nomeUsuario).limit(1).get();
+        if (!q.empty) return q.docs[0];
+        // criar usuário inicial
+        const newDocRef = await db.collection("usuarios").add({
+          nome: nomeUsuario,
+          avatar: defaultAvatar,
+          xp: 0,
+          streak: 0,
+          badges: [],
+          followers: [],        // manteve compatibilidade
+          following: [],
+          followersIds: [],
+          followingIds: [],
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        return await newDocRef.get();
+      } catch (e) {
+        console.error("Erro ensureUserDoc:", e);
+      }
+    }
+
     // Carregar perfil e atualizar UI
     async function loadProfile() {
       const doc = await ensureUserDoc();
@@ -286,6 +346,28 @@
        console.error('Erro ao carregar componentes da página:', e);
      }
     }
+
+    // tornar disponível para o sistema de XP chamar a atualização do perfil
+    window.renderUserProfile = loadProfile;
+
+   // feedback visual simples (toasts)
+  function showToast(text, timeout = 2200) {
+    const t = document.createElement('div');
+    t.textContent = text;
+    t.style.position = 'fixed';
+    t.style.right = '18px';
+    t.style.bottom = '18px';
+    t.style.background = 'linear-gradient(90deg, rgba(0,255,156,0.12), rgba(0,200,140,0.06))';
+    t.style.border = '1px solid rgba(0,255,156,0.14)';
+    t.style.color = '#00ffd0';
+    t.style.padding = '10px 14px';
+    t.style.borderRadius = '10px';
+    t.style.zIndex = 9999;
+    t.style.boxShadow = '0 10px 30px rgba(0,255,156,0.04)';
+    document.body.appendChild(t);
+    setTimeout(()=> t.style.opacity = '0.0', timeout - 300);
+    setTimeout(()=> t.remove(), timeout);
+  }
 
     // Mostrar/ocultar seleção avatar
     function mostrarOpcoesAvatar() {
@@ -767,286 +849,48 @@
     async function loadLeaderboard() {
       const list = document.getElementById('leaderboard');
       list.innerHTML = '<li>Carregando...</li>';
-      const snap = await db.collection('usuarios').orderBy('xp','desc').limit(10).get();
-      list.innerHTML = '';
-      snap.forEach(doc => {
-        const d = doc.data();
-        const li = document.createElement('li');
-        li.innerHTML = `<span><strong>${d.nome}</strong></span><span>${d.xp || 0} XP</span>`;
-        list.appendChild(li);
-      });
-    }
-
-    // Lista de amigos (following) e adicionar amigos - suporta nomes antigos e ids novos
-    async function loadFriendsList() {
-      const el = document.getElementById('friends');
-      el.innerHTML = 'Carregando...';
-      const q = await db.collection('usuarios').where('nome','==',nomeUsuario).limit(1).get();
-      if (q.empty) { el.innerHTML = 'Sem amigos.'; return; }
-      const data = q.docs[0].data();
-      const following = data.following || [];       // possível array de nomes
-      const followingIds = data.followingIds || []; // possível array de ids
-      el.innerHTML = '';
-      if (following.length === 0 && followingIds.length === 0) {
-        el.innerHTML = 'Você não está seguindo ninguém.';
-        return;
-      }
-      // Priorizar followingIds para buscar documentos
-      const seen = new Set();
-      // buscar por ids
-      for (const id of followingIds) {
-        try {
-          const snap = await db.collection('usuarios').doc(id).get();
-          if (!snap.exists) continue;
-          const d = snap.data();
-          if (seen.has(d.nome)) continue;
-          seen.add(d.nome);
-          appendFriendRow(el, d);
-        } catch (e) { console.warn(e); }
-      }
-      // também incluir names (compatibilidade com dados antigos), evitando duplicatas
-      for (const name of following) {
-        if (seen.has(name)) continue;
-        const snap = await db.collection('usuarios').where('nome','==',name).limit(1).get();
-        if (snap.empty) continue;
-        const d = snap.docs[0].data();
-        seen.add(d.nome);
-        appendFriendRow(el, d);
-      }
-    }
-
-    function appendFriendRow(container, d) {
-      const row = document.createElement('div'); row.className='friend-row';
-      const left = document.createElement('div'); left.className='left';
-      const img = document.createElement('img'); img.src = d.avatar || defaultAvatar;
-      const label = document.createElement('div'); label.innerHTML = `<strong>${d.nome}</strong><div class="small">${d.xp || 0} XP</div>`;
-      left.appendChild(img); left.appendChild(label);
-      const btns = document.createElement('div');
-      const pokeBtn = document.createElement('button'); pokeBtn.className='btn btn-ghost'; pokeBtn.textContent='Cutucar'; pokeBtn.onclick = ()=>pokeUser(d.nome);
-      const unfBtn = document.createElement('button'); unfBtn.className='btn btn-ghost'; unfBtn.textContent='Remover'; unfBtn.onclick = async ()=>{ await unfollowUser(d.nome); loadFriendsList(); loadUserSuggestions(); };
-      btns.appendChild(pokeBtn); btns.appendChild(unfBtn);
-      row.appendChild(left); row.appendChild(btns);
-      container.appendChild(row);
-    }
-
-    // Sugerir usuários para adicionar como amigo (usa ids para robustez)
-    async function loadUserSuggestions() {
-      const suggestionsEl = document.getElementById('user-suggestions');
-      suggestionsEl.innerHTML = 'Carregando...';
-      const allSnap = await db.collection('usuarios').orderBy('createdAt','desc').limit(50).get();
-      // get my following to filter (both ids and names)
-      const meSnap = await db.collection('usuarios').where('nome','==',nomeUsuario).limit(1).get();
-      const myFollowing = (meSnap.empty ? [] : meSnap.docs[0].data().following || []);
-      const myFollowingIds = (meSnap.empty ? [] : meSnap.docs[0].data().followingIds || []);
-      const myId = (meSnap.empty ? null : meSnap.docs[0].id);
-      suggestionsEl.innerHTML = '';
-      allSnap.forEach(doc => {
-        const u = doc.data();
-        const targetId = doc.id;
-        if (u.nome === nomeUsuario) return;
-        const row = document.createElement('div'); row.className='suggest-row';
-        const left = document.createElement('div'); left.style.display='flex'; left.style.alignItems='center'; left.style.gap='8px';
-        const img = document.createElement('img'); img.src = u.avatar || defaultAvatar; img.style.width='40px'; img.style.height='40px'; img.style.borderRadius='50%';
-        const info = document.createElement('div'); info.innerHTML = `<strong>${u.nome}</strong><div class="muted">${u.xp||0} XP</div>`;
-        left.appendChild(img); left.appendChild(info);
-        const btn = document.createElement('button');
-        const followingByName = myFollowing.includes(u.nome);
-        const followingById = myFollowingIds.includes(targetId);
-        if (followingByName || followingById) {
-          btn.textContent = 'Seguindo'; btn.className='btn btn-ghost';
-          btn.onclick = async () => { await unfollowUser(u.nome, targetId); loadUserSuggestions(); loadFriendsList(); };
-        } else {
-          btn.textContent = 'Adicionar'; btn.className='btn';
-          btn.onclick = async () => { await followUser(u.nome, targetId); loadUserSuggestions(); loadFriendsList(); };
-        }
-        row.appendChild(left); row.appendChild(btn);
-        suggestionsEl.appendChild(row);
-      });
-    }
-
-    // Follow / Unfollow (usa both: nomes para compatibilidade e ids para robustez)
-    async function followUser(targetName, targetId=null, myId=null) {
-      if (targetName === nomeUsuario) return;
-      // get my doc and target doc
-      const q = await db.collection('usuarios').where('nome','==',nomeUsuario).limit(1).get();
-      const tRef = targetId ? db.collection('usuarios').doc(targetId) : (await db.collection('usuarios').where('nome','==',targetName).limit(1).get()).docs[0]?.ref;
-      if (q.empty || !tRef) return;
-      const refMe = q.docs[0].ref;
-      const refTarget = tRef;
-      // push both name (compat) and id lists
-      await refMe.update({
-        following: firebase.firestore.FieldValue.arrayUnion(targetName),
-        followingIds: firebase.firestore.FieldValue.arrayUnion(refTarget.id)
-      });
-      await refTarget.update({
-        followers: firebase.firestore.FieldValue.arrayUnion(nomeUsuario),
-        followersIds: firebase.firestore.FieldValue.arrayUnion(q.docs[0].id)
-      });
-      await addActivity(`${nomeUsuario} começou a seguir ${targetName}`);
-    }
-
-    async function unfollowUser(targetName, targetId=null) {
-      if (targetName === nomeUsuario) return;
-      const q = await db.collection('usuarios').where('nome','==',nomeUsuario).limit(1).get();
-      const tRef = targetId ? db.collection('usuarios').doc(targetId) : (await db.collection('usuarios').where('nome','==',targetName).limit(1).get()).docs[0]?.ref;
-      if (q.empty || !tRef) return;
-      const refMe = q.docs[0].ref;
-      const refTarget = tRef;
-      await refMe.update({
-        following: firebase.firestore.FieldValue.arrayRemove(targetName),
-        followingIds: firebase.firestore.FieldValue.arrayRemove(refTarget.id)
-      });
-      await refTarget.update({
-        followers: firebase.firestore.FieldValue.arrayRemove(nomeUsuario),
-        followersIds: firebase.firestore.FieldValue.arrayRemove(q.docs[0].id)
-      });
-      await addActivity(`${nomeUsuario} deixou de seguir ${targetName}`);
-    }
-
-    // Gráfico de pontuação (usando localStorage como antes, mas também soma XP)
-    function renderChart() {
       try {
-        const scores = {
-          empatia: parseInt(localStorage.getItem("score_empatia") || 0),
-          equipe: parseInt(localStorage.getItem("score_equipe") || 0),
-          emocional: parseInt(localStorage.getItem("score_emocional") || 0),
-          comunicacao: parseInt(localStorage.getItem("score_comunicacao") || 0),
-        };
-        const ctx = document.getElementById('scoreChart').getContext('2d');
-        if (window._scoreChart) window._scoreChart.destroy();
-        window._scoreChart = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: ['Empatia', 'Trabalho em Equipe', 'Inteligência Emocional', 'Comunicação'],
-            datasets: [{
-              label: 'Pontuação Recorde',
-              data: Object.values(scores),
-              backgroundColor: '#00ff9c',
-              borderColor: '#00ff9c',
-              borderWidth: 2
-            }]
-          },
-          options: {
-            maintainAspectRatio: false,
-            responsive: true,
-            scales: {
-              y: { beginAtZero:true, ticks:{ color:'#00ff9c' }, grid:{ color:'#083229' } },
-              x: { ticks:{ color:'#00ff9c' }, grid:{ color:'transparent' } }
-            },
-            plugins: { legend:{ labels:{ color:'#00ff9c' } } }
+        // busca um conjunto razoável (sem limitar para permitir deduplicação correta)
+        const snap = await db.collection('usuarios').orderBy('xp','desc').limit(200).get();
+
+        // agrupa por nome normalizado e mantém o registro com maior XP por nome
+        const byName = new Map();
+        snap.forEach(doc => {
+          const d = doc.data() || {};
+          const rawName = String(d.nome || '').trim();
+          if (!rawName) return;
+          const key = rawName.toLowerCase(); // normaliza para evitar variações de case
+          const xp = Number(d.xp || 0);
+          const existing = byName.get(key);
+          if (!existing || xp > existing.xp) {
+            byName.set(key, { nome: rawName, xp, avatar: d.avatar || defaultAvatar });
           }
         });
-      } catch (e) { console.error(e); }
+
+        // transformar em array, ordenar por xp e renderizar top 10
+        const arr = Array.from(byName.values()).sort((a, b) => b.xp - a.xp).slice(0, 10);
+
+        list.innerHTML = '';
+        if (arr.length === 0) {
+          list.innerHTML = '<li>Nenhum usuário encontrado</li>';
+          return;
+        }
+        arr.forEach(u => {
+          const li = document.createElement('li');
+          li.innerHTML = `<span><strong>${escapeHtml(u.nome)}</strong></span><span>${u.xp || 0} XP</span>`;
+          list.appendChild(li);
+        });
+      } catch (e) {
+        console.error('loadLeaderboard error', e);
+        list.innerHTML = '<li>Erro ao carregar leaderboard</li>';
+      }
     }
 
-    // util: truncate
-    function truncate(s, n) { return s && s.length > n ? s.substring(0,n-1)+'…' : s; }
-
-    // Escapar HTML simples
-    function escapeHtml(text) {
-      return (text || '').replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; });
-    }
-
-    /* ===== Conquistas: bloco único e seguro ===== */
-(function initAchievements(){
-
-  // evitar redefinir se já existir
-  if (window.__ACH_INIT) return;
-  window.__ACH_INIT = true;
-
-  const ACH_LIST = {
-    ach_post: { id: 'ach_post', title: 'Primeiro Post', img: 'img/ach1.png', hint: 'Publique seu primeiro post' },
-    ach_like: { id: 'ach_like', title: 'Primeira Curtida', img: 'img/ach2.png', hint: 'Curta o primeiro post' },
-    ach_comment: { id: 'ach_comment', title: 'Primeiro Comentário', img: 'img/ach3.png', hint: 'Comente pela primeira vez' }
-  };
-
-  function getMyDocRef() {
-    return db.collection('usuarios').where('nome','==',nomeUsuario).limit(1).get();
-  }
-
-  async function renderAchievements() {
-    const modal = document.getElementById('achievementsModal');
-    if (!modal) return;
-    const grid = modal.querySelector('.ach-grid');
-    if (!grid) return;
-    grid.innerHTML = 'Carregando...';
-    try {
-      const q = await getMyDocRef();
-      const data = q.empty ? {} : q.docs[0].data();
-      const badges = data.badges || [];
-      grid.innerHTML = '';
-      Object.values(ACH_LIST).forEach(a => {
-        const unlocked = badges.find(b => b.id === a.id);
-        const card = document.createElement('div');
-        card.className = 'ach-item-card';
-        card.innerHTML = `
-          <div class="ach-img-wrap ${unlocked ? 'unlocked' : 'locked'}">
-            <img src="${a.img}" alt="${a.title}" />
-            ${!unlocked ? '<div class="lock-overlay">🔒</div>' : ''}
-          </div>
-          <div class="ach-title">${a.title}</div>
-          <div class="ach-date">${unlocked ? ('Conquistada: ' + new Date(unlocked.earnedAt).toLocaleString()) : '<span class="muted">Ainda não desbloqueada</span>'}</div>
-          <div class="ach-hint small">${a.hint}</div>
-        `;
-        grid.appendChild(card);
-      });
-    } catch (e) {
-      console.error('renderAchievements', e);
-      grid.innerHTML = 'Erro ao carregar conquistas';
-    }
-  }
-
-  async function revealAchievement(id) {
-    const meta = ACH_LIST[id];
-    if (!meta) return;
-    try {
-      const q = await getMyDocRef();
-      if (q.empty) return;
-      const doc = q.docs[0];
-      const data = doc.data();
-      const badges = data.badges || [];
-      if (badges.find(b => b.id === id)) return; // já possui
-      const badge = { id: meta.id, title: meta.title, img: meta.img, earnedAt: new Date().toISOString() };
-
-      // usar transaction/update seguro
-      await doc.ref.update({ badges: firebase.firestore.FieldValue.arrayUnion(badge) });
-
-      // registrar atividade que aparecerá em Atividades Recentes
-      await addActivity(`${nomeUsuario} desbloqueou a conquista: ${meta.title}`);
-
-      // atualizar modal se aberto
-      const m = document.getElementById('achievementsModal');
-      if (m && !m.classList.contains('hidden')) renderAchievements();
-
-    } catch (e) {
-      console.error('revealAchievement', e);
-    }
-  }
-
-  // expor para outras partes do código (publish/like/comment)
-  window.revealAchievement = revealAchievement;
-  window.renderAchievements = renderAchievements;
-
-  // botão de abrir/fechar
-  const btn = document.getElementById('openAchievements');
-  if (btn) btn.addEventListener('click', () => {
-    const m = document.getElementById('achievementsModal');
-    if (!m) return;
-    m.classList.toggle('hidden');
-    if (!m.classList.contains('hidden')) renderAchievements();
+  // Inicializar
+  loadProfile().then(()=> {
+    // start realtime posts watcher so newly created posts appear immediately
+    try { watchPostsRealtime(); } catch(e) { console.warn('watchPostsRealtime start error', e); }
   });
-
-  // botão fechar dentro do modal (se existir)
-  document.addEventListener('click', (ev) => {
-    if (ev.target && ev.target.matches && ev.target.matches('#achievementsModal .btn-exit')) {
-      const m = document.getElementById('achievementsModal'); if (m) m.classList.add('hidden');
-    }
-  });
-
-})();
-  
-    // Inicializar
-    loadProfile();
 
     // Botão editar perfil (abrir prompt simples)
     document.getElementById('edit-profile-btn').onclick = async () => {
@@ -1204,9 +1048,9 @@
   </script>
 
   <script>
-/* Neon bubbles background — lightweight, safe (no duplication) */
 (function initNeonBubbles(){
   if (document.getElementById('neonCanvas')) return;
+
   const canvas = document.createElement('canvas');
   canvas.id = 'neonCanvas';
   canvas.style.position = 'fixed';
@@ -1215,59 +1059,261 @@
   canvas.style.pointerEvents = 'none';
   document.body.prepend(canvas);
 
-  const ctx = canvas.getContext('2d');
-  let particles = [], w, h, dpr;
+  const ctx = canvas.getContext('2d', { alpha: true });
+  let particles = [], w = 0, h = 0, dpr = 1;
 
-  function resize(){
-    dpr = window.devicePixelRatio || 1;
-    w = canvas.width = Math.floor(window.innerWidth * dpr);
-    h = canvas.height = Math.floor(window.innerHeight * dpr);
-    canvas.style.width = window.innerWidth + 'px';
-    canvas.style.height = window.innerHeight + 'px';
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-
+  function createParticles(count) {
     particles = [];
-    const count = Math.max(24, Math.floor(window.innerWidth / 60));
-    for (let i = 0; i < count; i++){
+    for (let i = 0; i < count; i++) {
       particles.push({
-        x: Math.random() * window.innerWidth,
+        x: Math.random() * window.innerWidth,            // CSS pixels
         y: Math.random() * window.innerHeight,
-        r: 6 + Math.random() * 26,
-        vx: (Math.random() - 0.5) * 0.25,
-        vy: (Math.random() - 0.5) * 0.25,
-        alpha: 0.06 + Math.random() * 0.18
+        r: 6 + Math.random() * 26,                       // radius in CSS px
+        vx: (Math.random() - 0.5) * 0.35,                // velocity in CSS px/frame
+        vy: (Math.random() - 0.5) * 0.35,
+        alpha: 0.05 + Math.random() * 0.18
       });
     }
   }
 
-  function draw(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    for (const p of particles){
+  function resize() {
+    dpr = window.devicePixelRatio || 1;
+    // Set internal pixel size
+    canvas.width = Math.floor(window.innerWidth * dpr);
+    canvas.height = Math.floor(window.innerHeight * dpr);
+    // Maintain CSS layout size
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    // Use identity transform; we'll scale positions manually when drawing
+    ctx.setTransform(1,0,0,1,0,0);
+    w = window.innerWidth;
+    h = window.innerHeight;
+
+    const count = Math.max(24, Math.floor(window.innerWidth / 60));
+    createParticles(count);
+  }
+
+  function draw() {
+    // clear using full pixel buffer
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // draw each particle using device-pixel scaling explicitly (avoids canvas transform artifacts)
+    for (const p of particles) {
+      // update in CSS pixels
       p.x += p.vx;
       p.y += p.vy;
-      if (p.x < -p.r) p.x = window.innerWidth + p.r;
-      if (p.x > window.innerWidth + p.r) p.x = -p.r;
-      if (p.y < -p.r) p.y = window.innerHeight + p.r;
-      if (p.y > window.innerHeight + p.r) p.y = -p.r;
 
-      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 2.6);
-      grad.addColorStop(0, `rgba(0,255,156,${p.alpha})`);
-      grad.addColorStop(0.45, `rgba(0,200,140,${p.alpha * 0.6})`);
+      // wrap around
+      if (p.x < -p.r) p.x = w + p.r;
+      if (p.x > w + p.r) p.x = -p.r;
+      if (p.y < -p.r) p.y = h + p.r;
+      if (p.y > h + p.r) p.y = -p.r;
+
+      // compute device pixels
+      const cx = Math.floor(p.x * dpr);
+      const cy = Math.floor(p.y * dpr);
+      const cr = Math.max(1, Math.floor(p.r * dpr));
+
+      // radial gradient in device pixels
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, cr * 2.6);
+      grad.addColorStop(0, `rgba(0,255,156,${Math.min(1, p.alpha)})`);
+      grad.addColorStop(0.45, `rgba(0,200,140,${Math.min(1, p.alpha * 0.6)})`);
       grad.addColorStop(1, 'rgba(0,0,0,0)');
 
       ctx.beginPath();
       ctx.fillStyle = grad;
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.arc(cx, cy, cr, 0, Math.PI * 2);
       ctx.fill();
     }
+
     requestAnimationFrame(draw);
   }
 
-  window.addEventListener('resize', resize, { passive: true });
+  window.addEventListener('resize', () => {
+    // small debounce
+    clearTimeout(initNeonBubbles._resizetimer);
+    initNeonBubbles._resizetimer = setTimeout(resize, 80);
+  }, { passive: true });
+
+  // initialize
   resize();
   requestAnimationFrame(draw);
 })();
 </script>
 
-</body>
+
+  <!-- realtime watch para atualizar XP imediatamente quando o Firestore muda -->
+  <script>
+  (async function watchUserRealtime(){
+    try {
+      if (!nomeUsuario || !db) return;
+      const q = await db.collection('usuarios').where('nome','==',nomeUsuario).limit(1).get();
+      if (q.empty) return;
+      const userRef = q.docs[0].ref;
+      userRef.onSnapshot(doc => {
+        if (!doc.exists) return;
+        const data = doc.data() || {};
+        // atualizar XP UI
+        const xp = Number(data.xp || 0);
+        try {
+          const { level, progress, next } = calcLevel(xp);
+          const levelEl = document.getElementById('profile-level');
+          if (levelEl) levelEl.textContent = 'Nível ' + level;
+          const percent = Math.round((progress / next) * 100);
+          const fill = document.getElementById('xp-fill');
+          if (fill) fill.style.width = percent + '%';
+          const xpText = document.getElementById('xp-text');
+          if (xpText) xpText.textContent = `${xp} XP • ${progress}/${next}`;
+        } catch(e){}
+        // streak e badges
+        if (data.streak !== undefined) {
+          const sEl = document.getElementById('profile-streak');
+          if (sEl) sEl.textContent = '🔥 Streak: ' + (Number(data.streak)||0) + ' dias';
+        }
+        // refresh leaderboard (keeps it in sync)
+        try { if (typeof loadLeaderboard === 'function') loadLeaderboard().catch(()=>{}); } catch(e){}
+        // refresh badges UI if modal open
+        try { const m = document.getElementById('achievementsModal'); if (m && !m.classList.contains('hidden') && typeof renderAchievements === 'function') renderAchievements(); } catch(e){}
+      });
+    } catch (e) {
+      console.warn('watchUserRealtime error', e);
+    }
+  })();
+  </script>
+
+  <script>
+/* Achievements UI: render + reveal safely */
+(function initAchievementsUI(){
+  if (window.__ACH_UI_INIT) return;
+  window.__ACH_UI_INIT = true;
+
+  const ACH_LIST = {
+    ach_post: { id: 'ach_post', title: 'Primeiro Post', img: 'img/ach1.png', hint: 'Publique seu primeiro post' },
+    ach_like: { id: 'ach_like', title: 'Primeira Curtida', img: 'img/ach2.png', hint: 'Curta um post' },
+    ach_comment: { id: 'ach_comment', title: 'Primeiro Comentário', img: 'img/ach3.png', hint: 'Comente em um post' },
+
+    /* Novas conquistas éticas (desbloqueadas ao escolher respostas específicas no curso de Ética) */
+    eth_private_talk: { id: 'eth_private_talk', title: 'Conversa Particular', img: 'img/ach_eth1.png', hint: 'Resolveu um conflito conversando em particular' },
+    eth_whistleblower: { id: 'eth_whistleblower', title: 'Denúncia Corajosa', img: 'img/ach_eth2.png', hint: 'Reportou uma fraude com responsabilidade' },
+    eth_calm_response: { id: 'eth_calm_response', title: 'Resposta Mansa', img: 'img/ach_eth3.png', hint: 'Manteve a calma e conduziu a situação com profissionalismo' }
+  };
+
+  // Renderiza as conquistas no modal
+  async function renderAchievements() {
+    const modal = document.getElementById('achievementsModal');
+    if (!modal) return;
+    const grid = modal.querySelector('.ach-grid');
+    if (!grid) return;
+    grid.innerHTML = 'Carregando...';
+
+    function parseTimestamp(raw) {
+      if (!raw) return null;
+      if (raw && typeof raw.toDate === 'function') return raw.toDate(); // Firestore Timestamp
+      if (typeof raw === 'object' && typeof raw.seconds === 'number') return new Date(raw.seconds * 1000);
+      if (typeof raw === 'string') { const d = new Date(raw); if (!isNaN(d)) return d; }
+      if (typeof raw === 'number') return new Date(raw);
+      return null;
+    }
+
+    try {
+      const q = await db.collection('usuarios').where('nome','==',nomeUsuario).limit(1).get();
+      const data = q.empty ? {} : q.docs[0].data();
+      const badges = Array.isArray(data.badges) ? data.badges : [];
+      grid.innerHTML = '';
+           Object.values(ACH_LIST).forEach(a => {
+        const unlocked = badges.find(b => b.id === a.id);
+        const card = document.createElement('div');
+        card.className = 'ach-item-card';
+        card.style.display = 'inline-block';
+        card.style.width = '160px';
+        card.style.margin = '8px';
+        card.style.textAlign = 'center';
+
+        let dateStr = '<span class="muted">' + a.hint + '</span>';
+        if (unlocked) {
+          // evita uso de '??' para compatibilidade
+          const raw = unlocked.earnedAt || unlocked.ts || unlocked.time || null;
+          const d = parseTimestamp(raw);
+          dateStr = d ? ('Conquistada: ' + d.toLocaleString()) : 'Conquistada';
+        }
+
+        card.innerHTML = `
+          <div class="ach-img-wrap" style="width:96px;height:96px;margin:0 auto 8px;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;border:2px solid rgba(0,255,156,0.06);background:rgba(0,0,0,0.12)">
+            <img src="${a.img}" alt="${a.title}" style="width:84px;height:84px;object-fit:cover;filter:${unlocked ? 'none' : 'grayscale(100%) brightness(.6)'}" />
+          </div>
+          <div style="font-weight:700;color:var(--neon)">${a.title}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:6px">${dateStr}</div>
+        `;
+        grid.appendChild(card);
+      });
+    } catch (e) {
+      console.error('renderAchievements', e);
+      grid.innerHTML = 'Erro ao carregar conquistas';
+    }
+  }
+  window.renderAchievements = renderAchievements;
+
+  // Revela conquista (idempotente)
+  async function revealAchievement(id) {
+    try {
+      const meta = ACH_LIST[id];
+      if (!meta) return;
+      const q = await db.collection('usuarios').where('nome','==',nomeUsuario).limit(1).get();
+      if (q.empty) return;
+      const doc = q.docs[0];
+      const data = doc.data() || {};
+      const badges = Array.isArray(data.badges) ? data.badges : [];
+      if (badges.find(b => b.id === id)) return; // já possui
+      const badge = { id: meta.id, title: meta.title, img: meta.img, earnedAt: firebase.firestore.Timestamp.now() };
+      await doc.ref.update({ badges: firebase.firestore.FieldValue.arrayUnion(badge) });
+      // registrar atividade
+      if (typeof addActivity === 'function') await addActivity(`${nomeUsuario} desbloqueou a conquista: ${meta.title}`);
+      // feedback visual imediato
+      try { showToast(`Conquista desbloqueada: ${meta.title}`); } catch(e){}
+      // atualizar modal se aberto
+      const m = document.getElementById('achievementsModal');
+      if (m && !m.classList.contains('hidden')) renderAchievements();
+    } catch (e) {
+      console.error('revealAchievement', e);
+    }
+  }
+  window.revealAchievement = revealAchievement;
+
+  // botão abrir/fechar
+  const btn = document.getElementById('openAchievements');
+  if (btn) btn.addEventListener('click', (ev) => {
+    const m = document.getElementById('achievementsModal');
+    if (!m) return;
+    m.classList.toggle('hidden');
+    if (!m.classList.contains('hidden')) {
+      // slight delay to ensure modal visible
+      setTimeout(() => renderAchievements().catch(()=>{}), 50);
+    }
+  });
+
+  // close buttons inside modal (if any)
+  document.addEventListener('click', (ev) => {
+    if (ev.target && ev.target.matches && ev.target.matches('#achievementsModal .btn-exit')) {
+      const m = document.getElementById('achievementsModal'); if (m) m.classList.add('hidden');
+    }
+  });
+
+})();
+</script>
+
+  <!-- LEGADO: tabela antiga de pontuação por curso (coloquei no final para replicar comportamento anterior) -->
+  <div style="max-width:1200px;margin:18px auto;padding:8px;">
+    <div class="card" id="legacy-course-scores" style="display:flex;flex-direction:column;gap:8px;">
+      <h3>Pontuação por Curso</h3>
+      <div style="display:flex;gap:12px;align-items:flex-end;">
+        <div style="flex:1;text-align:center"><div style="font-weight:700">0</div><div class="muted">Empatia</div></div>
+        <div style="flex:1;text-align:center"><div style="font-weight:700">0</div><div class="muted">Comunicação</div></div>
+        <div style="flex:1;text-align:center"><div style="font-weight:700">0</div><div class="muted">Trabalho em Equipe</div></div>
+        <div style="flex:1;text-align:center"><div style="font-weight:700">0</div><div class="muted">Inteligência Emocional</div></div>
+      </div>
+      <div style="margin-top:8px;font-size:13px;color:var(--text-soft)">Valores: melhor pontuação registrada por curso (legado).</div>
+    </div>
+  </div>
+  
+  </body>
 </html>

@@ -383,5 +383,24 @@
     };
   });
   </script>
+
+  <!-- inserir no botão de concluir do módulo -->
+<script>
+  // finalize o módulo; scorePercent entre 0 e 100
+  function finishModule_empatia(scorePercent = 100) {
+    // se a central estiver aberta na mesma sessão (opener), chama diretamente
+    try {
+      if (window.opener && typeof window.opener.completeCourse === 'function') {
+        window.opener.completeCourse('empatia', scorePercent);
+        window.location.href = 'central.html';
+        return;
+      }
+    } catch(e){ /* ignore */ }
+
+    // fallback: grava flag para ser processada quando a central for carregada
+    localStorage.setItem('courseComplete::empatia', JSON.stringify({ score: scorePercent || 100, t: Date.now() }));
+    window.location.href = 'central.html';
+  }
+</script>
 </body>
-</html> 
+</html>
